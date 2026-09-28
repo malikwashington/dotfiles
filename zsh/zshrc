@@ -64,6 +64,37 @@ function y() {
 	rm -f -- "$tmp"
 }
 
+# take: mkdir+cd, or download+extract a tarball, or clone a git repo — then cd into it
+# (same as oh-my-zsh's; defined here so it works without omz)
+takeurl() {
+  local data thedir
+  data="$(mktemp)"
+  curl -L "$1" > "$data"
+  tar xf "$data"
+  thedir="$(tar tf "$data" | head -n 1)"
+  rm "$data"
+  cd "$thedir"
+}
+
+takegit() {
+  git clone "$1"
+  cd "$(basename ${1%%.git})"
+}
+
+# mkcd is equivalent to takedir
+mkcd takedir() {
+  mkdir -p $@ && cd ${@:$#}
+}
+
+take() {
+  if [[ $1 =~ ^(https?|ftp).*\.tar\.(gz|bz2|xz)$ ]]; then
+    takeurl "$1"
+  elif [[ $1 =~ ^([A-Za-z0-9]\+@|https?|git|ssh|ftps?|rsync).*\.git/?$ ]]; then
+    takegit "$1"
+  else
+    takedir "$@"
+  fi
+}
 
 # ---------- tool hooks (no-op when the tool is absent) ----------
 # nvm

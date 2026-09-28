@@ -5,3 +5,6 @@
 # machine-specific, lives in ~ not here
 zshrc.local
 *.local
+
+# karabiner writes these next to karabiner.json
+karabiner/automatic_backups/

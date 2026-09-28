@@ -23,8 +23,9 @@ mkdir -p ~/.config/tmux && ln -sf ~/dotfiles/tmux/tmux.conf ~/.config/tmux/tmux.
 mkdir -p ~/.config/yazi && ln -sf ~/dotfiles/yazi/theme.toml ~/.config/yazi/theme.toml && ln -sf ~/dotfiles/yazi/package.toml ~/.config/yazi/package.toml
 ya pkg install
 
-# karabiner
-mkdir -p ~/.config/karabiner && ln -sf ~/dotfiles/karabiner/karabiner.json ~/.config/karabiner/karabiner.json
+# karabiner — link the whole dir (Karabiner's GUI saves by replacing
+# karabiner.json, which breaks a file-level symlink). Do this before first launch.
+ln -s ~/dotfiles/karabiner ~/.config/karabiner
 
 # hidutil key remap (loads at login)
 cp hidutil/com.local.KeyRemapping.plist ~/Library/LaunchAgents/
@@ -43,7 +44,7 @@ ln -s ~/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application\ Support/
 | `vim/` | `~/.vimrc`, `~/.vim/autoload/plug.vim` |
 | `tmux/` | `~/.config/tmux/tmux.conf` |
 | `yazi/` | `~/.config/yazi/{theme,package}.toml` (flavors installed via `ya pkg install`) |
-| `karabiner/` | `~/.config/karabiner/karabiner.json` |
+| `karabiner/` | `~/.config/karabiner` (whole dir) |
 | `hidutil/` | `~/Library/LaunchAgents/` (copied, not linked) |
 | `alfred/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences` |
 
