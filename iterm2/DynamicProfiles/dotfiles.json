@@ -1,0 +1,35 @@
+{
+  "Profiles": [
+    {
+      "Name": "Main",
+      "Guid": "dotfiles-main",
+      "Normal Font": "JetBrainsMonoNF-Regular 13",
+      "Use Non-ASCII Font": false,
+      "Blinking Cursor": false,
+      "Scrollback Lines": 50000,
+      "Unlimited Scrollback": false,
+      "Option Key Sends": 2,
+      "Right Option Key Sends": 2,
+      "Custom Directory": "Recycle"
+    },
+    {
+      "Name": "Hotkey Window",
+      "Guid": "dotfiles-hotkey",
+      "Dynamic Profile Parent Name": "Main",
+      "Has Hotkey": true,
+      "HotKey Key Code": 49,
+      "HotKey Characters": " ",
+      "HotKey Characters Ignoring Modifiers": " ",
+      "HotKey Modifier Flags": 524288,
+      "Window Type": 2,
+      "Space": -1,
+      "HotKey Window AutoHides": true,
+      "HotKey Window Reopens On Activation": false,
+      "HotKey Window Animates": true,
+      "HotKey Window Floats": true,
+      "HotKey Window Dock Click Action": 0,
+      "Rows": 30,
+      "Transparency": 0.05
+    }
+  ]
+}

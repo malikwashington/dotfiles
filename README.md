@@ -26,6 +26,11 @@ mkdir -p ~/.config/karabiner && ln -sf ~/dotfiles/karabiner/karabiner.json ~/.co
 cp hidutil/com.local.KeyRemapping.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.local.KeyRemapping.plist
 
+# iterm2 (install: brew install --cask iterm2 font-jetbrains-mono-nerd-font)
+# Settings > General > Preferences: load from custom folder ~/dotfiles/iterm2
+mkdir -p ~/Library/Application\ Support/iTerm2/DynamicProfiles
+ln -sf ~/dotfiles/iterm2/DynamicProfiles/dotfiles.json ~/Library/Application\ Support/iTerm2/DynamicProfiles/dotfiles.json
+
 # alfred (quit Alfred first; then relaunch). 1Password workflow: reinstall from the Alfred Gallery.
 rm -rf ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
 ln -s ~/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
@@ -40,7 +45,12 @@ ln -s ~/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application\ Support/
 | `tmux/` | `~/.config/tmux/tmux.conf` |
 | `karabiner/` | `~/.config/karabiner/karabiner.json` |
 | `hidutil/` | `~/Library/LaunchAgents/` (copied, not linked) |
+| `iterm2/` | prefs plist via custom folder; `DynamicProfiles/` symlinked |
 | `alfred/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences` |
+
+## iTerm2 notes
+
+Profiles live in `iterm2/DynamicProfiles/dotfiles.json` (plain JSON, editable). `Main` is the default profile with JetBrainsMono Nerd Font. `Hotkey Window` drops down from the top of the screen on **Option+Space**.
 
 ## Alfred notes
 
