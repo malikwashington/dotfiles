@@ -1,0 +1,48 @@
+set number
+set relativenumber
+set tabstop=4
+set softtabstop=4
+set shiftwidth=4
+set autoindent
+set hlsearch
+
+syntax on
+
+" set the number of colors to 256
+set t_Co=256
+
+set laststatus=2
+set wrap
+
+" only use vim and not vi
+set nocompatible
+
+" incrementally search for strings
+set incsearch
+
+" fzf runtime path: Apple Silicon brew, Intel brew, or Linux package
+for s:fzf in ['/opt/homebrew/opt/fzf', '/usr/local/opt/fzf', '/usr/share/doc/fzf/examples']
+  if isdirectory(s:fzf)
+    let &rtp .= ',' . s:fzf
+    break
+  endif
+endfor
+
+map <C-u> <C-u>zz
+map <C-d> <C-d>zz
+
+nnoremap n nzz
+nnoremap N Nzz
+
+inoremap { {<CR><CR>}<up><TAB>
+
+call plug#begin()
+
+  Plug 'tpope/vim-sensible'
+  Plug 'mattn/emmet-vim'
+  Plug 'wolandark/vim-live-server'
+  Plug 'junegunn/fzf', {'do': { -> fzf#install() }}
+  Plug 'junegunn/fzf.vim'
+
+
+call plug#end()

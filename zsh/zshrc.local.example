@@ -1,0 +1,11 @@
+# Copy to ~/.zshrc.local and edit. This file is NOT tracked in git.
+
+# Java
+export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-22.jdk/Contents/Home"
+path+=("$JAVA_HOME/bin")
+
+# MySQL
+path+=(/usr/local/mysql-9.2.0-macos15-arm64/bin)
+
+# personal servers
+alias sb='ssh -i ~/.ssh/aws.pem ubuntu@YOUR_SERVER_IP'

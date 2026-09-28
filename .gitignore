@@ -1,0 +1,7 @@
+# session/tool state, never config
+.remember/
+.DS_Store
+
+# machine-specific, lives in ~ not here
+zshrc.local
+*.local

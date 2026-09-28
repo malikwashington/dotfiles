@@ -1,0 +1,67 @@
+# zshrc — tracked in dotfiles. Machine-specific settings go in ~/.zshrc.local (untracked).
+
+# ---------- PATH ----------
+typeset -U path                      # dedupe entries
+[ -d /opt/homebrew/bin ] && path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
+path+=("$HOME/bin" "$HOME/.local/bin")
+export PATH
+
+# ---------- oh-my-zsh ----------
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="robbyrussell"
+plugins=(git)
+zstyle ':omz:update' mode auto
+[ -s "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
+
+# ---------- aliases: editing this config ----------
+alias zshrc='vim ~/.zshrc'
+alias vimrc='vim ~/.vimrc'
+alias tmuxconf='vim ~/.config/tmux/tmux.conf'
+alias sourced='source ~/.zshrc'
+
+# ---------- aliases: modern replacements (only if installed) ----------
+command -v eza >/dev/null && alias ls='eza'
+command -v bat >/dev/null && alias cat='bat'
+alias code='code --new-window'
+
+# ---------- aliases: python ----------
+alias py='python3'
+alias venv='virtualenv env'
+alias bina='source env/bin/activate'
+alias prr='pip3 install -r requirements.txt'
+alias pfr='pip3 freeze > requirements.txt'
+alias pm='python manage.py'
+alias pmig='python manage.py makemigrations && python manage.py migrate'
+
+# ---------- aliases: node ----------
+alias ni='npm install'
+alias nrs='npm run start'
+alias nrd='npm run dev'
+
+# ---------- aliases: git ----------
+alias gc='git commit -am'
+alias gp='git push --set-upstream origin'
+alias gs='git switch'
+
+# ---------- functions ----------
+# fuzzy cd: pick a directory under $1 (default .) with fzf
+fcd() {
+  local dir
+  dir=$(find "${1:-.}" -type d -not -path '*/.*' 2>/dev/null | fzf +m) && cd "$dir"
+}
+
+# ---------- tool hooks (no-op when the tool is absent) ----------
+# nvm
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
+
+# fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# google cloud sdk
+[ -f "$HOME/google-cloud-sdk/path.zsh.inc" ] && source "$HOME/google-cloud-sdk/path.zsh.inc"
+[ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ] && source "$HOME/google-cloud-sdk/completion.zsh.inc"
+
+# ---------- machine-specific overrides (not tracked) ----------
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
