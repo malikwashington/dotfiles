@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>apikey_coinmarket</key>
+	<string>69c14ade-c916-4f9d-881d-a0824610d887</string>
+	<key>apikey_fixer</key>
+	<string>981c29b63e1f603a54b05004e7460ecb</string>
+	<key>base_currencies</key>
+	<string>USD</string>
+	<key>timezone</key>
+	<string>America/New_York</string>
+</dict>
+</plist>

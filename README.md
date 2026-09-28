@@ -25,6 +25,10 @@ mkdir -p ~/.config/karabiner && ln -sf ~/dotfiles/karabiner/karabiner.json ~/.co
 # hidutil key remap (loads at login)
 cp hidutil/com.local.KeyRemapping.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.local.KeyRemapping.plist
+
+# alfred (quit Alfred first; then relaunch). 1Password workflow: reinstall from the Alfred Gallery.
+rm -rf ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
+ln -s ~/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
 ```
 
 ## Layout
@@ -36,3 +40,9 @@ launchctl load ~/Library/LaunchAgents/com.local.KeyRemapping.plist
 | `tmux/` | `~/.config/tmux/tmux.conf` |
 | `karabiner/` | `~/.config/karabiner/karabiner.json` |
 | `hidutil/` | `~/Library/LaunchAgents/` (copied, not linked) |
+| `alfred/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences` |
+
+## Alfred notes
+
+Tracked workflows: mp3book (mine), clc, Temporary Email, and Calculate Anything. Calculate Anything is deprecated upstream and carries local fixes, so it is kept in full. The 1Password workflow is gitignored; install it from the Gallery.
+The `mp3book` workflow needs the `mp3book` tool: `uv tool install mp3book`.
