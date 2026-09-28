@@ -3,7 +3,7 @@
 # ---------- PATH ----------
 typeset -U path                      # dedupe entries
 [ -d /opt/homebrew/bin ] && path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
-path+=("$HOME/bin" "$HOME/.local/bin")
+for d in "$HOME/bin" "$HOME/.local/bin"; do [ -d "$d" ] && path+=("$d"); done
 export PATH
 
 # ---------- oh-my-zsh ----------

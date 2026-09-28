@@ -1,11 +1,13 @@
 # Copy to ~/.zshrc.local and edit. This file is NOT tracked in git.
 
-# Java
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-22.jdk/Contents/Home"
-path+=("$JAVA_HOME/bin")
+# Java: newest installed JDK (pin with e.g. `java_home -v 21`)
+if [ -x /usr/libexec/java_home ] && /usr/libexec/java_home >/dev/null 2>&1; then
+  export JAVA_HOME="$(/usr/libexec/java_home)"
+  path+=("$JAVA_HOME/bin")
+fi
 
-# MySQL
-path+=(/usr/local/mysql-9.2.0-macos15-arm64/bin)
+# MySQL (official .pkg installs to /usr/local/mysql)
+[ -d /usr/local/mysql/bin ] && path+=(/usr/local/mysql/bin)
 
 # personal servers
 alias sb='ssh -i ~/.ssh/aws.pem ubuntu@YOUR_SERVER_IP'
