@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.barelyknown.desk</string>
+	<key>category</key>
+	<string>Productivity</string>
+	<key>connections</key>
+	<dict>
+		<key>1A9B2760-DBBA-4EF5-A17E-7609EA38D4A4</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>D34715F6-AEF9-4509-A0E6-71993EB72DE5</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>D9BF72A6-27E4-40CB-A2C1-42173D24B0C6</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>D34715F6-AEF9-4509-A0E6-71993EB72DE5</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Sean Devine</string>
+	<key>description</key>
+	<string>Change desktop by name</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>desk</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>keyword</key>
+				<string>desk</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Loading desktops…</string>
+				<key>script</key>
+				<string>#!/bin/zsh
+set -euo pipefail
+
+if ! command -v python3 &gt;/dev/null 2&gt;&amp;1; then
+  cat &lt;&lt;'JSON'
+{"items":[{"title":"Desk: Python 3 not found","subtitle":"Install Python 3 (e.g. Homebrew: brew install python) and try again.","valid":false}]}
+JSON
+  exit 0
+fi
+
+/usr/bin/env python3 "./desk_alfred.py" "{query}"
+</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Type a name to switch. Type “name 1–9” to set. ⌥↩ removes.</string>
+				<key>title</key>
+				<string>desk</string>
+				<key>type</key>
+				<integer>5</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>1A9B2760-DBBA-4EF5-A17E-7609EA38D4A4</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>#!/bin/zsh
+set -uo pipefail
+arg="$1"
+
+run() {
+  ./desk "$@" 2&gt;&amp;1
+}
+
+notify() {
+  local msg="$1"
+  /usr/bin/osascript -e "display notification \"${msg//\"/\\\"}\" with title \"Desk\""
+}
+
+if [[ "$arg" == __set__:* ]]; then
+  rest="${arg#__set__:}"
+  name="${rest%:*}"
+  num="${rest##*:}"
+  if ! out="$(run set "$name" "$num")"; then
+    notify "$out"
+    exit 1
+  fi
+  exit 0
+fi
+
+if [[ "$arg" == __rm__:* ]]; then
+  name="${arg#__rm__:}"
+  if ! out="$(run rm "$name")"; then
+    notify "$out"
+    exit 1
+  fi
+  exit 0
+fi
+
+[[ "$arg" == "__noop__" ]] &amp;&amp; exit 0
+
+if ! out="$(run go "$arg")"; then
+  notify "$out"
+  exit 1
+fi</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>11</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>D34715F6-AEF9-4509-A0E6-71993EB72DE5</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>keyword</key>
+				<string>d</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Loading desktops…</string>
+				<key>script</key>
+				<string>#!/bin/zsh
+set -euo pipefail
+
+if ! command -v python3 &gt;/dev/null 2&gt;&amp;1; then
+  cat &lt;&lt;'JSON'
+{"items":[{"title":"Desk: Python 3 not found","subtitle":"Install Python 3 (e.g. Homebrew: brew install python) and try again.","valid":false}]}
+JSON
+  exit 0
+fi
+
+/usr/bin/env python3 "./desk_alfred.py" "{query}"
+</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Type a name to switch. Type “name 1–9” to set. ⌥↩ removes.</string>
+				<key>title</key>
+				<string>desk</string>
+				<key>type</key>
+				<integer>11</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>D9BF72A6-27E4-40CB-A2C1-42173D24B0C6</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>## Usage
+
+Name and switch between macOS Desktop Spaces via the `desk` keyword.
+
+![Naming and switching desktops](images/desk.png)
+
+* &lt;kbd&gt;↩&lt;/kbd&gt; Switch to the selected Desktop (or save a new name → desktop mapping).
+* &lt;kbd&gt;⌥&lt;/kbd&gt;&lt;kbd&gt;↩&lt;/kbd&gt; Delete the selected mapping.
+
+### Examples
+
+* Name a desktop: `desk music 2` (also supports `desk music:2` or `desk music=2`)
+* Switch by name: `desk music`
+* Switch by number: `desk 2`
+
+## Alternative Invocations
+
+Alternatively, use the `d` keyword.
+
+## Setup
+
+### Requirements
+
+* **Python 3** must be available (`python3`). If Alfred shows “Python 3 not found”, install Python 3 and try again.
+* **Mission Control shortcuts** must be enabled for switching:
+
+  * System Settings → Keyboard → Keyboard Shortcuts… → Mission Control → enable “Switch to Desktop 1” … “Switch to Desktop 9”.
+
+### Permissions
+
+On first use, macOS may ask for permission to control **System Events**. If switching fails:
+
+* System Settings → Privacy &amp; Security → **Accessibility** → enable Alfred
+* System Settings → Privacy &amp; Security → **Automation** → allow Alfred to control System Events
+
+## Data &amp; Privacy
+
+Mappings are stored locally on your Mac as a JSON file in Alfred’s workflow data directory.
+
+## Limitations
+
+* Desktop switching supports **Desktop 1–9** (macOS Control–1..9 shortcuts).</string>
+	<key>uidata</key>
+	<dict>
+		<key>1A9B2760-DBBA-4EF5-A17E-7609EA38D4A4</key>
+		<dict>
+			<key>xpos</key>
+			<real>155</real>
+			<key>ypos</key>
+			<real>275</real>
+		</dict>
+		<key>D34715F6-AEF9-4509-A0E6-71993EB72DE5</key>
+		<dict>
+			<key>xpos</key>
+			<real>455</real>
+			<key>ypos</key>
+			<real>275</real>
+		</dict>
+		<key>D9BF72A6-27E4-40CB-A2C1-42173D24B0C6</key>
+		<dict>
+			<key>xpos</key>
+			<real>150</real>
+			<key>ypos</key>
+			<real>410</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array/>
+	<key>variablesdontexport</key>
+	<array/>
+	<key>version</key>
+	<string>0.1.0</string>
+	<key>webaddress</key>
+	<string>https://github.com/barelyknown/desk-alfred-workflow</string>
+</dict>
+</plist>

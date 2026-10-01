@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Google Sheets bridge helper. Reads URL/token from the "GSheet .jobs Credential"
+# 1Password item and POSTs a JSON payload to the Apps Script web app.
+# Usage: sheet '<json>'
+#   sheet '{"id":"...", "sheet":"cli tools", "action":"read", "range":"A3:D10"}'
+# For a batch payload ({"ops":[...]}), a top-level "sheet" is copied into each op
+# (the script ignores a top-level "sheet" inside ops and falls back to the first tab).
+set -euo pipefail
+
+if [ $# -ne 1 ]; then
+  echo "usage: sheet '<json>'" >&2
+  exit 1
+fi
+
+URL=$(op read "op://Personal/GSheet .jobs Credential/website")
+TOKEN=$(op read "op://Personal/GSheet .jobs Credential/password")
+
+payload=$(TOKEN="$TOKEN" python3 -c '
+import json, os, sys
+body = json.loads(sys.argv[1])
+body["token"] = os.environ["TOKEN"]
+if "ops" in body and "sheet" in body:
+    top_sheet = body["sheet"]
+    for op in body["ops"]:
+        op["sheet"] = top_sheet
+print(json.dumps(body))
+' "$1")
+
+curl -sL --max-time 60 -H 'Content-Type: application/json' -d "$payload" "$URL"
+echo

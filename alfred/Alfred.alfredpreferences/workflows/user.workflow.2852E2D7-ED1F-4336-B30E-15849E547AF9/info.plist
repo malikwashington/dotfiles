@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.arcaartem.alfred.bluescope</string>
+	<key>category</key>
+	<string>Productivity</string>
+	<key>connections</key>
+	<dict>
+		<key>bluetooth-conditional</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>system-settings-opener</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>sourceoutputuid</key>
+				<string>open-settings-path</string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>bluetooth-power-toggle</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>bluetooth-conditional</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>power-script-executor</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>device-list-filter</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>connection-toggle-script</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+			<dict>
+				<key>destinationuid</key>
+				<string>bluetooth-conditional</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>Arca Artem</string>
+	<key>description</key>
+	<string>Discover, connect, and manage Bluetooth devices with ease</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>BlueScope</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>var script = $.NSString.stringWithContentsOfFileEncodingError("scripts/bluescope.js", $.NSUTF8StringEncoding, null).js;
+eval(script);
+function run(argv) {
+  var connected = getEnv("connected");
+  debug("=== Toggle Connection Wrapper ===");
+  debug("argv[0]: " + argv[0]);
+  debug("connected env var: " + connected);
+  debug("comparison result: " + (connected === "1"));
+  return toggleConnection(argv[0], connected === "1");
+}</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>7</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>connection-toggle-script</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<true/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>{var:device_toggle_keyword}</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Gathering device information…</string>
+				<key>script</key>
+				<string>var script = $.NSString.stringWithContentsOfFileEncodingError("scripts/bluescope.js", $.NSUTF8StringEncoding, null).js;
+eval(script);
+function run() { return listDevices(); }</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>skipuniversalaction</key>
+				<true/>
+				<key>subtext</key>
+				<string>Toggle device connection status</string>
+				<key>title</key>
+				<string>Show Paired Bluetooth Devices</string>
+				<key>type</key>
+				<integer>7</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>device-list-filter</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>browser</key>
+				<string></string>
+				<key>skipqueryencode</key>
+				<false/>
+				<key>skipvarencode</key>
+				<false/>
+				<key>spaces</key>
+				<string></string>
+				<key>url</key>
+				<string>x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth</string>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.openurl</string>
+			<key>uid</key>
+			<string>system-settings-opener</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>conditions</key>
+				<array>
+					<dict>
+						<key>inputstring</key>
+						<string>{var:open_system_settings}</string>
+						<key>matchcasesensitive</key>
+						<false/>
+						<key>matchmode</key>
+						<integer>5</integer>
+						<key>matchstring</key>
+						<string></string>
+						<key>outputlabel</key>
+						<string>Open System Settings</string>
+						<key>uid</key>
+						<string>open-settings-path</string>
+					</dict>
+				</array>
+				<key>elselabel</key>
+				<string></string>
+				<key>hideelse</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.utility.conditional</string>
+			<key>uid</key>
+			<string>bluetooth-conditional</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<true/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>2</integer>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>keyword</key>
+				<string>{var:full_toggle_keyword}</string>
+				<key>queuedelaycustom</key>
+				<integer>3</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Gathering Bluetooth status…</string>
+				<key>script</key>
+				<string>var script = $.NSString.stringWithContentsOfFileEncodingError("scripts/bluescope.js", $.NSUTF8StringEncoding, null).js;
+eval(script);
+function run() { return powerStatus(); }</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>skipuniversalaction</key>
+				<true/>
+				<key>subtext</key>
+				<string>Turn Bluetooth on or off</string>
+				<key>title</key>
+				<string>Toggle Bluetooth</string>
+				<key>type</key>
+				<integer>7</integer>
+				<key>withspace</key>
+				<false/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>bluetooth-power-toggle</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>68</integer>
+				<key>script</key>
+				<string>var script = $.NSString.stringWithContentsOfFileEncodingError("scripts/bluescope.js", $.NSUTF8StringEncoding, null).js;
+eval(script);
+function run(argv) { return setPower(argv[0]); }</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>7</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>power-script-executor</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>## BlueScope - Bluetooth Device Manager
+
+Discover, connect, and manage Bluetooth devices with ease through Alfred.
+
+*Inspired by the excellent Dente Azul workflow. This workflow was created because Dente Azul stopped working for the developer's setup.*
+
+### Requirements
+
+This workflow requires [blueutil](https://github.com/toy/blueutil) to be installed:
+
+```bash
+brew install blueutil
+```
+
+### Usage
+
+**Device Management** - Use `btd` keyword (configurable):
+
+![Connect or disconnect devices](images/about/btd.png)
+
+* &lt;kbd&gt;↩&lt;/kbd&gt; Toggle device connection (connect/disconnect)
+* **Visual indicators**: Color icon = connected, grayscale = disconnected
+
+**Bluetooth Power** - Use `btt` keyword (configurable):
+
+![Connect or disconnect Bluetooth](images/about/btt.png)
+
+* &lt;kbd&gt;↩&lt;/kbd&gt; Turn Bluetooth on/off
+
+### Configuration
+
+Customize keywords in workflow settings:
+- **Device Toggle Keyword** (default: `btd`)
+- **Bluetooth Power Keyword** (default: `btt`)
+
+### Troubleshooting
+
+**"blueutil not found"** → Install via `brew install blueutil`
+**"Error accessing Bluetooth"** → Grant Alfred Bluetooth permissions in System Settings
+**No devices showing** → Pair devices in System Settings first
+
+[📖 Full Documentation](https://github.com/arcaartem/alfred-workflow-bluescope)</string>
+	<key>uidata</key>
+	<dict>
+		<key>bluetooth-conditional</key>
+		<dict>
+			<key>xpos</key>
+			<real>350</real>
+			<key>ypos</key>
+			<real>240</real>
+		</dict>
+		<key>bluetooth-power-toggle</key>
+		<dict>
+			<key>xpos</key>
+			<real>80</real>
+			<key>ypos</key>
+			<real>360</real>
+		</dict>
+		<key>connection-toggle-script</key>
+		<dict>
+			<key>xpos</key>
+			<real>310</real>
+			<key>ypos</key>
+			<real>60</real>
+		</dict>
+		<key>device-list-filter</key>
+		<dict>
+			<key>xpos</key>
+			<real>80</real>
+			<key>ypos</key>
+			<real>60</real>
+		</dict>
+		<key>power-script-executor</key>
+		<dict>
+			<key>xpos</key>
+			<real>310</real>
+			<key>ypos</key>
+			<real>360</real>
+		</dict>
+		<key>system-settings-opener</key>
+		<dict>
+			<key>xpos</key>
+			<real>475</real>
+			<key>ypos</key>
+			<real>210</real>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>btd</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Device Toggle Keyword</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>device_toggle_keyword</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>btt</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<false/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Bluetooth Power Keyword</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>full_toggle_keyword</string>
+		</dict>
+	</array>
+	<key>variables</key>
+	<dict>
+		<key>BLUEUTIL_USE_SYSTEM_PROFILER</key>
+		<string>1</string>
+	</dict>
+	<key>version</key>
+	<string>1.0.2</string>
+	<key>webaddress</key>
+	<string>https://github.com/arcaartem/alfred-workflow-bluescope</string>
+</dict>
+</plist>

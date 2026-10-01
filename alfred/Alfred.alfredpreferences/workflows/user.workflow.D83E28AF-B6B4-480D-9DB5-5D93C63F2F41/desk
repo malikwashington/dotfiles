@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+import json, os, subprocess, sys, shutil, tempfile
+
+# Prefer explicit override, then Alfred data dir, else fallback
+def config_path():
+  data_dir = os.environ.get("alfred_workflow_data")
+  return os.path.join(data_dir, "desktops.json")
+
+CONFIG = os.path.expanduser(config_path())
+os.makedirs(os.path.dirname(CONFIG), exist_ok=True)
+if not os.path.exists(CONFIG):
+  with open(CONFIG, "w") as f:
+    f.write("{}\n")
+
+def load():
+  try:
+    if not os.path.exists(CONFIG):
+      return {}
+    with open(CONFIG) as f:
+      raw = json.load(f) or {}
+  except Exception:
+    return {}
+
+  if not isinstance(raw, dict):
+    return {}
+
+  cleaned = {}
+  for k, v in raw.items():
+    try:
+      name = str(k).strip().lower()
+      n = int(v)
+      if name and 1 <= n <= 9:
+        cleaned[name] = n
+    except Exception:
+      pass
+  return cleaned
+
+def save(m):
+  # atomic write
+  d = os.path.dirname(CONFIG)
+  fd, tmp = tempfile.mkstemp(prefix="desktops.", suffix=".json", dir=d)
+  try:
+    with os.fdopen(fd, "w") as f:
+      json.dump(m, f, indent=2, sort_keys=True)
+      f.write("\n")
+    os.replace(tmp, CONFIG)
+  finally:
+    try:
+      os.remove(tmp)
+    except Exception:
+      pass
+
+def usage():
+  print("usage:")
+  print("  desk go <name|num>")
+  print("  desk set <name> <num>")
+  print("  desk rm <name>")
+  print("  desk list")
+  sys.exit(1)
+
+def switch_to(n: int):
+  keycodes = {1:18, 2:19, 3:20, 4:21, 5:23, 6:22, 7:26, 8:28, 9:25}
+  if n not in keycodes:
+    raise SystemExit("Only 1..9 supported (macOS Switch to Desktop shortcuts).")
+  code = keycodes[n]
+  p = subprocess.run(
+    ["/usr/bin/osascript", "-e",
+    f'tell application "System Events" to key code {code} using control down'],
+    capture_output=True, text=True
+  )
+
+  if p.returncode != 0:
+    msg = (p.stderr or p.stdout or "").strip()
+    raise SystemExit(
+      "Desk couldn’t send the keypress via System Events.\n"
+      "Fix: System Settings → Privacy & Security → Accessibility: enable Alfred.\n"
+      "Also check Privacy & Security → Automation: allow Alfred to control System Events.\n"
+      f"Details: {msg}"
+    )
+
+def main():
+  if len(sys.argv) < 2:
+    usage()
+
+  cmd = sys.argv[1].lower()
+  m = load()
+
+  if cmd == "doctor":
+    print(f"CONFIG={CONFIG}")
+    print(f"exists={os.path.exists(CONFIG)}")
+    print(f"count={len(m)}")
+    return
+
+  if cmd == "list":
+    for k in sorted(m.keys()):
+      print(f"{k}\t{m[k]}")
+    return
+
+  if cmd == "set":
+    if len(sys.argv) != 4:
+      usage()
+    name = sys.argv[2].strip().lower()
+    n = int(sys.argv[3])
+
+    # Enforce: one name per desktop number
+    for k, v in list(m.items()):
+      try:
+        if int(v) == n and k.strip().lower() != name:
+          m.pop(k, None)
+      except Exception:
+        pass
+
+    m[name] = n
+    save(m)
+    print(f"set {name} -> {n}")
+    return
+
+  if cmd == "rm":
+    if len(sys.argv) != 3:
+      usage()
+    name = sys.argv[2].strip().lower()
+    m.pop(name, None)
+    save(m)
+    print(f"removed {name}")
+    return
+
+  if cmd == "go":
+    if len(sys.argv) != 3:
+      usage()
+    q = sys.argv[2].strip().lower()
+
+    # allow desk go 3
+    if q.isdigit():
+      switch_to(int(q))
+      return
+
+    # exact match
+    if q in m:
+      switch_to(int(m[q]))
+      return
+
+    # prefix match if unambiguous
+    matches = [k for k in m.keys() if k.startswith(q)]
+    if len(matches) == 1:
+      switch_to(int(m[matches[0]]))
+      return
+
+    raise SystemExit(f"Unknown/ambiguous name: {q}. Try: desk list")
+  usage()
+
+if __name__ == "__main__":
+  main()
