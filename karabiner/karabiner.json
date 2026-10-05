@@ -20,7 +20,7 @@
                         ]
                     },
                     {
-                        "description": "Caps Lock -> Control when held, Escape when tapped alone",
+                        "description": "Caps Lock -> Escape on release when tapped alone within 500ms; Control only in combination with another key, never on its own",
                         "manipulators": [
                             {
                                 "from": {
