@@ -119,6 +119,10 @@ alias windows='say "Good Morning! This is the start of something great!" && caff
 
 # -- bash --
 #   sheet     Google Sheets bridge; reads its creds from 1Password. ($DOTFILES/bin/sheet)
+#   gh-login  log this Mac into github over https and wire git up to the token
+#   gh-logout drop the token and the keychain credential again
+alias ghon='gh-login'
+alias ghoff='gh-logout'
 command -v portkill >/dev/null && alias pk='portkill'   # not installed on this machine
 
 # -- python --
