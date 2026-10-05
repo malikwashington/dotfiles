@@ -16,7 +16,7 @@ Safe to re-run (e.g. after pulling, or if the repo moves): links are repointed, 
 git clone git@github.com:malikwashington/dotfiles.git ~/Documents/dotfiles
 cd ~/Documents/dotfiles
 
-# zsh (requires oh-my-zsh: https://ohmyz.sh)
+# zsh
 ln -sf ~/Documents/dotfiles/zsh/zshrc ~/.zshrc
 cp -n zsh/zshrc.local.example ~/.zshrc.local   # then edit
 

@@ -44,7 +44,6 @@ if [[ ! -e "$HOME/.zshrc.local" ]]; then
   echo "    new ~/.zshrc.local from example (edit it)"
   run cp "$DOTFILES/zsh/zshrc.local.example" "$HOME/.zshrc.local"
 fi
-[[ -d "$HOME/.oh-my-zsh" ]] || warn "oh-my-zsh not installed: https://ohmyz.sh"
 
 # --- vim -------------------------------------------------------------------
 say vim

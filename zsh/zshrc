@@ -1,31 +1,95 @@
 # zshrc — tracked in dotfiles. Machine-specific settings go in ~/.zshrc.local (untracked).
 
 # ---------- PATH ----------
-typeset -U path                      # dedupe entries
-[ -d /opt/homebrew/bin ] && path=(/opt/homebrew/bin /opt/homebrew/sbin $path)
-for d in "$HOME/bin" "$HOME/.local/bin"; do [ -d "$d" ] && path+=("$d"); done
+# this file's repo, resolved through the ~/.zshrc symlink (.../dotfiles/zsh/zshrc -> .../dotfiles)
+DOTFILES="${${(%):-%N}:A:h:h}"
+
+typeset -U path fpath                # dedupe entries
+
+# Homebrew first — also sets HOMEBREW_PREFIX, MANPATH, INFOPATH
+[ -x /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# pyenv — shims must precede Homebrew's python
+export PYENV_ROOT="$HOME/.pyenv"
+[ -d "$PYENV_ROOT/bin" ] && path=("$PYENV_ROOT/bin" $path)
+
+# Go
+export GOPATH="$HOME/go"
+[ -d "$GOPATH/bin" ] && path+=("$GOPATH/bin")
+
+# own scripts: this repo's bin/, then any machine-local ones
+for d in "$DOTFILES/bin" "$HOME/bin" "$HOME/.local/bin"; do
+  [ -d "$d" ] && path+=("$d")
+done
 export PATH
 
 # ---------- Set Defaults ----------
 export EDITOR='vim'
 
-# ---------- oh-my-zsh ----------
-export ZSH="$HOME/.oh-my-zsh"
-ZSH_THEME="robbyrussell"
-plugins=(git)
-zstyle ':omz:update' mode auto
-[ -s "$ZSH/oh-my-zsh.sh" ] && source "$ZSH/oh-my-zsh.sh"
+# ---------- shell options ----------
+setopt auto_cd                       # `Documents` on its own means `cd Documents`
+setopt auto_pushd pushd_ignore_dups pushd_silent   # cd keeps a stack: `cd -2`
+setopt interactive_comments          # allow `#` comments when pasting commands
+setopt no_beep                       # /etc/zshrc turns BEEP on; turn it back off
+unsetopt flow_control                # free up ctrl-s / ctrl-q
+
+# ---------- history ----------
+# /etc/zshrc caps these at 2000/1000 — raise them and dedupe
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt share_history                 # one history across all open shells
+setopt extended_history              # record timestamp + duration
+setopt hist_ignore_all_dups          # a repeated command keeps only its newest entry
+setopt hist_ignore_space             # a leading space keeps a command out of history
+setopt hist_reduce_blanks            # tidy whitespace before saving
+setopt hist_verify                   # show an expanded `!!` instead of running it blind
+
+# ---------- completion ----------
+# Homebrew's completions (git, brew, docker, ...) live here; must precede compinit
+[ -d "${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh/site-functions" ] &&
+  fpath=("${HOMEBREW_PREFIX:-/opt/homebrew}/share/zsh/site-functions" $fpath)
+
+zmodload zsh/complist               # the interactive completion menu
+autoload -Uz compinit
+# rebuild the completion cache at most once a day, so new shells start fast
+() {
+  setopt local_options extended_glob
+  local dump="$HOME/.zcompdump"
+  if [[ -n $dump(#qN.mh-24) ]]; then
+    compinit -C -d $dump             # cache is fresh: trust it, skip the scan
+  else
+    compinit -i -d $dump             # rebuild; -i ignores group-writable brew dirs
+  fi
+}
+
+setopt complete_in_word              # complete from the cursor, not just end of word
+setopt always_to_end                 # ...then put the cursor at the end
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}'   # case/dash-insensitive
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*:descriptions' format '%F{yellow}%B%d%b%f'
+zstyle ':completion:*' use-cache on
+zstyle ':completion:*' cache-path "$HOME/.cache/zsh/compcache"
 
 # ---------- aliases: editing this config ----------
 alias zshrc='vim ~/.zshrc'
-alias vimrc='vim ~/.vimrc'
+alias vimrc='vim ~/.vim/vimrc'
 alias tmuxconf='vim ~/.config/tmux/tmux.conf'
 alias sourced='source ~/.zshrc'
 
 # ---------- aliases: modern replacements (only if installed) ----------
-command -v eza >/dev/null && alias ls='eza'
+if command -v eza >/dev/null; then
+  alias ls='eza --icons auto'
+  alias tree='ls --tree'
+fi
+alias ll='ls -l'                     # inherits the eza alias when present
+alias la='ls -la'
 command -v bat >/dev/null && alias cat='bat'
 alias code='code --new-window'
+
+# ---------- aliases: tools ----------
+command -v herdr >/dev/null && alias h='herdr'      # agent multiplexer
 
 # ---------- aliases: python ----------
 alias py='python3'
@@ -46,6 +110,21 @@ alias gc='git commit -am'
 alias gp='git push --set-upstream origin'
 alias gs='git switch'
 
+# ---------- work ----------
+alias co='copilot'
+alias windows='say "Good Morning! This is the start of something great!" && caffeinate -di open -a "Windows App" -W && say "Work session closed. Have a good night."'
+
+# ---------- personal cli tooling ----------
+# Scripts in $DOTFILES/bin are on PATH (see above); installed tools are listed per language.
+
+# -- bash --
+#   sheet     Google Sheets bridge; reads its creds from 1Password. ($DOTFILES/bin/sheet)
+command -v portkill >/dev/null && alias pk='portkill'   # not installed on this machine
+
+# -- python --
+#   mp3book   audiobook builder, required by the mp3book Alfred workflow.
+#             install: uv tool install mp3book
+
 # ---------- functions ----------
 # fuzzy cd: pick a directory under $1 (default .) with fzf
 fcd() {
@@ -53,19 +132,18 @@ fcd() {
   dir=$(find "${1:-.}" -type d -not -path '*/.*' 2>/dev/null | fzf +m) && cd "$dir"
 }
 
-
 # yazi: file manager in the terminal
-function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	yazi "$@" --cwd-file="$tmp"
-	if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
-		builtin cd -- "$cwd"
-	fi
-	rm -f -- "$tmp"
+y() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+  yazi "$@" --cwd-file="$tmp"
+  if cwd="$(cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+    builtin cd -- "$cwd"
+  fi
+  rm -f -- "$tmp"
 }
 
 # take: mkdir+cd, or download+extract a tarball, or clone a git repo — then cd into it
-# (same as oh-my-zsh's; defined here so it works without omz)
+# (same behaviour as oh-my-zsh's, without the dependency)
 takeurl() {
   local data thedir
   data="$(mktemp)"
@@ -97,17 +175,37 @@ take() {
 }
 
 # ---------- tool hooks (no-op when the tool is absent) ----------
-# nvm
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && source "$NVM_DIR/bash_completion"
-
-# fzf
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+command -v pyenv    >/dev/null && eval "$(pyenv init -)"
+command -v starship >/dev/null && eval "$(starship init zsh)"
+command -v fzf      >/dev/null && eval "$(fzf --zsh)"
+command -v zoxide   >/dev/null && eval "$(zoxide init zsh)"      # z
+command -v direnv   >/dev/null && eval "$(direnv hook zsh)"
+command -v fnm      >/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 
 # google cloud sdk
 [ -f "$HOME/google-cloud-sdk/path.zsh.inc" ] && source "$HOME/google-cloud-sdk/path.zsh.inc"
 [ -f "$HOME/google-cloud-sdk/completion.zsh.inc" ] && source "$HOME/google-cloud-sdk/completion.zsh.inc"
+
+# ---------- zsh plugins (must be last) ----------
+BREW_SHARE="${HOMEBREW_PREFIX:-/opt/homebrew}/share"
+[ -f "$BREW_SHARE/zsh-autosuggestions/zsh-autosuggestions.zsh" ] &&
+  source "$BREW_SHARE/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+# Tab accepts the autosuggestion when one is showing, otherwise completes as usual
+_tab_accept_or_complete() {
+  if [[ -n "$POSTDISPLAY" ]]; then
+    zle autosuggest-accept
+  else
+    zle expand-or-complete
+  fi
+}
+zle -N _tab_accept_or_complete
+bindkey '^I' _tab_accept_or_complete
+
+# syntax highlighting wraps the widgets above, so it loads after them
+[ -f "$BREW_SHARE/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] &&
+  source "$BREW_SHARE/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+unset BREW_SHARE
 
 # ---------- machine-specific overrides (not tracked) ----------
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
