@@ -10,11 +10,19 @@ git clone git@github.com:malikwashington/dotfiles.git ~/Documents/dotfiles
 ~/Documents/dotfiles/install.sh
 ```
 
+`install.sh` installs everything in [`Brewfile`](Brewfile) first (Homebrew itself is the only
+prerequisite), then links the configs. To change what a fresh Mac gets, edit `Brewfile` and
+re-run. `brew bundle dump --force` rewrites it from what's currently installed;
+`brew bundle cleanup` lists what's installed but no longer tracked.
+
 Safe to re-run (e.g. after pulling, or if the repo moves): links are repointed, anything in the way is moved to `<name>.bak-<timestamp>`, and this Mac's Alfred local settings are copied into the repo before Alfred is linked. The manual equivalent:
 
 ```sh
 git clone git@github.com:malikwashington/dotfiles.git ~/Documents/dotfiles
 cd ~/Documents/dotfiles
+
+# packages
+brew bundle install --file=Brewfile
 
 # zsh
 ln -sf ~/Documents/dotfiles/zsh/zshrc ~/.zshrc

@@ -37,6 +37,23 @@ link() {
   run ln -s "$src" "$dst"
 }
 
+# --- homebrew + packages ---------------------------------------------------
+say homebrew
+if ! command -v brew >/dev/null; then
+  if [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  else
+    warn "Homebrew missing. Install it, then re-run:"
+    echo '      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+  fi
+fi
+if command -v brew >/dev/null; then
+  echo "    brew bundle (see Brewfile)"
+  run brew bundle install --file="$DOTFILES/Brewfile" --no-upgrade
+else
+  warn "skipping Brewfile: no brew on PATH"
+fi
+
 # --- zsh -------------------------------------------------------------------
 say zsh
 link zsh/zshrc "$HOME/.zshrc"
@@ -109,15 +126,6 @@ else
   fi
   link alfred/Alfred.alfredpreferences "$ALFRED_PREFS"
   if ((alfred_running)); then run open -b com.runningwithcrayons.Alfred; fi
-fi
-# Calculate Anything runs on Homebrew php (macOS no longer ships /usr/bin/php)
-if ! command -v php >/dev/null && [[ ! -x /opt/homebrew/bin/php && ! -x /usr/local/bin/php ]]; then
-  if command -v brew >/dev/null; then
-    echo "    brew install php (for Calculate Anything)"
-    run brew install php
-  else
-    warn "php missing: install Homebrew, then brew install php"
-  fi
 fi
 command -v mp3book >/dev/null || warn "mp3book workflow needs: uv tool install mp3book"
 
