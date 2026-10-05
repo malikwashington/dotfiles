@@ -46,9 +46,10 @@ brew "php"                          # required by Alfred's Calculate Anything wo
 # ---------- agents / ai ----------
 brew "herdr"                        # agent multiplexer; aliased to `h`
 
-# ---------- go tools (installed with `go install`) ----------
-go "logq"
-go "notify"
+# ---------- my own go tools ----------
+# logq, notify and portkill live in github.com/malikwashington/cli-tools and are
+# built from source by install.sh. They're bare modules ("module portkill"), not
+# fetchable paths, so brew/go install can't resolve them by name.
 
 # ---------- apps ----------
 cask "ghostty"                      # terminal (GPU-accelerated)

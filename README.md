@@ -15,6 +15,11 @@ prerequisite), then links the configs. To change what a fresh Mac gets, edit `Br
 re-run. `brew bundle dump --force` rewrites it from what's currently installed;
 `brew bundle cleanup` lists what's installed but no longer tracked.
 
+It also clones [`cli-tools`](https://github.com/malikwashington/cli-tools) to
+`~/Documents/cli-tools` (or pulls it if already there) and builds each of its Go
+modules into `$GOPATH/bin`: `logq`, `notify`, `portkill`. A tool that fails to
+build is reported and skipped rather than stopping the install.
+
 Safe to re-run (e.g. after pulling, or if the repo moves): links are repointed, anything in the way is moved to `<name>.bak-<timestamp>`, and this Mac's Alfred local settings are copied into the repo before Alfred is linked. The manual equivalent:
 
 ```sh

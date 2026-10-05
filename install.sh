@@ -62,6 +62,39 @@ if [[ ! -e "$HOME/.zshrc.local" ]]; then
   run cp "$DOTFILES/zsh/zshrc.local.example" "$HOME/.zshrc.local"
 fi
 
+# --- cli-tools (separate repo: my own go utilities) -------------------------
+say cli-tools
+CLI_TOOLS="$HOME/Documents/cli-tools"
+CLI_TOOLS_REPO="https://github.com/malikwashington/cli-tools.git"
+if [[ -d "$CLI_TOOLS/.git" ]]; then
+  echo "    pull $CLI_TOOLS"
+  run git -C "$CLI_TOOLS" pull --ff-only || warn "pull failed; leaving the checkout as-is"
+elif [[ -e "$CLI_TOOLS" ]]; then
+  warn "$CLI_TOOLS exists but isn't a git checkout; skipping"
+else
+  echo "    clone $CLI_TOOLS_REPO"
+  run git clone "$CLI_TOOLS_REPO" "$CLI_TOOLS"
+fi
+# each tool is its own module, so build them one at a time. go install puts them
+# in $GOPATH/bin, which zsh/zshrc already has on PATH.
+if command -v go >/dev/null; then
+  if ((DRY)); then
+    echo "    [dry-run] go install each module under $CLI_TOOLS"
+  else
+    for mod in "$CLI_TOOLS"/*/go.mod; do
+      [[ -e "$mod" ]] || continue
+      d="$(dirname "$mod")"
+      if (cd "$d" && go install .) 2>/dev/null; then
+        echo "    built $(basename "$d")"
+      else
+        warn "$(basename "$d") failed to build; run: cd $d && go install ."
+      fi
+    done
+  fi
+else
+  warn "go not installed: run brew bundle (Brewfile), then re-run"
+fi
+
 # --- vim -------------------------------------------------------------------
 say vim
 # vim reads ~/.vim/vimrc, but ~/.vimrc would take precedence: remove the old link

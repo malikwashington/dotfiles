@@ -117,11 +117,17 @@ alias windows='say "Good Morning! This is the start of something great!" && caff
 # ---------- personal cli tooling ----------
 # Scripts in $DOTFILES/bin are on PATH (see above); installed tools are listed per language.
 
-# -- bash --
-#   sheet     Google Sheets bridge; reads its creds from 1Password. ($DOTFILES/bin/sheet)
+# -- bash --  ($DOTFILES/bin, on PATH above)
+#   sheet     Google Sheets bridge; reads its creds from 1Password.
 #   gh-logout one-off: purge a stored github https token from this Mac's
 #             keychain and gh's keyring. Unrelated to ghon/ghoff below.
-command -v portkill >/dev/null && alias pk='portkill'   # not installed on this machine
+
+# -- go --  (github.com/malikwashington/cli-tools -> ~/Documents/cli-tools,
+#            built into $GOPATH/bin by install.sh)
+#   logq      query log files
+#   notify    run a command and get notified when it finishes
+#   portkill  kill whatever is listening on a port
+command -v portkill >/dev/null && alias pk='portkill'
 
 # -- python --
 #   mp3book   audiobook builder, required by the mp3book Alfred workflow.
