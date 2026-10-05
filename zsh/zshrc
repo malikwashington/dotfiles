@@ -119,60 +119,15 @@ alias windows='say "Good Morning! This is the start of something great!" && caff
 
 # -- bash --
 #   sheet     Google Sheets bridge; reads its creds from 1Password. ($DOTFILES/bin/sheet)
-#   gh-logout one-off: purge a stored github token from this Mac's keychain and
-#             from gh's keyring. Not needed for ghon, which stores nothing.
+#   gh-login  log this Mac into github over https and wire git up to the token
+#   gh-logout drop the token and the keychain credential again
+alias ghon='gh-login'
+alias ghoff='gh-logout'
 command -v portkill >/dev/null && alias pk='portkill'   # not installed on this machine
 
 # -- python --
 #   mp3book   audiobook builder, required by the mp3book Alfred workflow.
 #             install: uv tool install mp3book
-
-# ---------- github auth (session-only) ----------
-# The token lives in this shell and nowhere else: not the keychain, not on disk,
-# not in this repo. It dies with the window or pane. GitHub stopped accepting
-# passwords for git in 2021, so this is a fine-grained PAT (scope it to
-# read-only Contents on the repos you need) kept in 1Password.
-#
-#   ghon    load it into this shell
-#   ghoff   drop it again
-#
-# Point GH_TOKEN_REF at your own item in ~/.zshrc.local.
-: ${GH_TOKEN_REF:=op://Private/GitHub/credential}
-
-ghon() {
-  command -v op >/dev/null || { print -u2 "ghon: op not installed (run install.sh)"; return 1 }
-  local tok
-  if ! tok="$(op read "$GH_TOKEN_REF" 2>&1)"; then
-    print -u2 "ghon: couldn't read $GH_TOKEN_REF"
-    print -u2 "      $tok"
-    print -u2 "      not signed in? eval \$(op signin)"
-    return 1
-  fi
-  [[ -n "$tok" ]] || { print -u2 "ghon: $GH_TOKEN_REF holds nothing"; return 1 }
-  export GH_TOKEN="$tok"
-
-  # git has to see it too. An empty first helper value resets the helper list,
-  # which drops the system-wide osxkeychain helper (/opt/homebrew/etc/gitconfig)
-  # for this shell only; gh then answers, resolving $GH_TOKEN at call time. No
-  # git config file is written, so this disappears with the shell as well.
-  export GIT_CONFIG_COUNT=2
-  export GIT_CONFIG_KEY_0=credential.helper GIT_CONFIG_VALUE_0=
-  export GIT_CONFIG_KEY_1=credential.helper GIT_CONFIG_VALUE_1='!gh auth git-credential'
-
-  local who
-  if who="$(gh api user --jq .login 2>/dev/null)"; then
-    print "ghon: $who, this shell only"
-  else
-    # token is still loaded; this is just the check failing (offline, or expired)
-    print -u2 "ghon: loaded, but GitHub didn't confirm it — offline, expired or revoked?"
-  fi
-}
-
-ghoff() {
-  unset GH_TOKEN
-  unset GIT_CONFIG_COUNT GIT_CONFIG_KEY_0 GIT_CONFIG_VALUE_0 GIT_CONFIG_KEY_1 GIT_CONFIG_VALUE_1
-  print "ghoff: cleared from this shell"
-}
 
 # ---------- functions ----------
 # fuzzy cd: pick a directory under $1 (default .) with fzf

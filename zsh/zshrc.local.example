@@ -11,7 +11,3 @@ fi
 
 # personal servers
 alias sb='ssh -i ~/.ssh/aws.pem ubuntu@YOUR_SERVER_IP'
-
-# github token for ghon — the 1Password item holding a fine-grained PAT.
-# Find the reference with: op item get "<item>" --format json | jq -r .id
-# export GH_TOKEN_REF='op://Private/GitHub/credential'
