@@ -73,24 +73,6 @@ link tmux/tmux.conf "$HOME/.config/tmux/tmux.conf"
 say karabiner
 link karabiner "$HOME/.config/karabiner"
 
-# --- hidutil key remap (copied, not linked) --------------------------------
-say hidutil
-PLIST=com.local.KeyRemapping.plist
-AGENT="$HOME/Library/LaunchAgents/$PLIST"
-LABEL="gui/$(id -u)/com.local.KeyRemapping"
-if ! cmp -s "$DOTFILES/hidutil/$PLIST" "$AGENT"; then
-  echo "    copy $AGENT"
-  run mkdir -p "$HOME/Library/LaunchAgents"
-  launchctl print "$LABEL" >/dev/null 2>&1 && run launchctl bootout "$LABEL"
-  run cp "$DOTFILES/hidutil/$PLIST" "$AGENT"
-fi
-if launchctl print "$LABEL" >/dev/null 2>&1; then
-  echo "    ok  loaded"
-else
-  echo "    load $LABEL"
-  run launchctl bootstrap "gui/$(id -u)" "$AGENT"
-fi
-
 # --- yazi (files only: flavors install into ~/.config/yazi and aren't tracked) -
 say yazi
 link yazi/theme.toml "$HOME/.config/yazi/theme.toml"
@@ -143,6 +125,6 @@ command -v mp3book >/dev/null || warn "mp3book workflow needs: uv tool install m
 say done
 ((DRY)) && echo "    (dry run: nothing changed)"
 cat <<'EOF'
-    If Karabiner, iTerm2 or Alfred can't read their settings, grant them access
+    If Karabiner or Alfred can't read their settings, grant them access
     in System Settings > Privacy & Security > Files and Folders (this repo is in ~/Documents).
 EOF

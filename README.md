@@ -34,10 +34,6 @@ ya pkg install
 # karabiner.json, which breaks a file-level symlink). Do this before first launch.
 ln -s ~/Documents/dotfiles/karabiner ~/.config/karabiner
 
-# hidutil key remap (loads at login)
-cp hidutil/com.local.KeyRemapping.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.local.KeyRemapping.plist
-
 # alfred (quit Alfred first; then relaunch; Calculate Anything needs `brew install php`). 1Password workflow: reinstall from the Alfred Gallery.
 rm -rf ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
 ln -s ~/Documents/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application\ Support/Alfred/Alfred.alfredpreferences
@@ -52,10 +48,19 @@ ln -s ~/Documents/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application
 | `tmux/` | `~/.config/tmux/tmux.conf` |
 | `yazi/` | `~/.config/yazi/{theme,package}.toml` (flavors installed via `ya pkg install`) |
 | `karabiner/` | `~/.config/karabiner` (whole dir) |
-| `hidutil/` | `~/Library/LaunchAgents/` (copied, not linked) |
+| `hidutil/` | not installed — reference only (see below) |
 | `alfred/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences` |
 
 ## Alfred notes
 
 Tracked workflows: mp3book (mine), clc, Temporary Email, and Calculate Anything. Calculate Anything is deprecated upstream and carries local fixes, so it is kept in full. The 1Password workflow is gitignored; install it from the Gallery.
 The `mp3book` workflow needs the `mp3book` tool: `uv tool install mp3book`.
+
+## hidutil notes
+
+`hidutil/com.local.KeyRemapping.plist` is kept for reference and is **not** installed by `install.sh`. It's a LaunchAgent that swaps Caps Lock and Escape at login using macOS's built-in `hidutil`, without Karabiner. To use it by hand:
+
+```sh
+cp hidutil/com.local.KeyRemapping.plist ~/Library/LaunchAgents/
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.local.KeyRemapping.plist
+```
