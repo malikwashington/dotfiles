@@ -139,8 +139,8 @@ command -v portkill >/dev/null && alias pk='portkill'   # not installed on this 
 #
 # Override any of these in ~/.zshrc.local. The ?ssh-format=openssh on the
 # private key is required: without it 1Password hands back a different format.
-: ${GH_SSH_KEY_REF:=op://Private/GitHub SSH/private key?ssh-format=openssh}
-: ${GH_SSH_PUB_REF:=op://Private/GitHub SSH/public key}
+: ${GH_SSH_KEY_REF:=op://Private/Github SSH Key/private key?ssh-format=openssh}
+: ${GH_SSH_PUB_REF:=op://Private/Github SSH Key/public key}
 : ${GH_SSH_TTL:=8h}
 
 ghon() {
