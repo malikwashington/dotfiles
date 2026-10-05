@@ -46,3 +46,8 @@ call plug#begin()
 
 
 call plug#end()
+
+" install any missing plugins on startup (fresh machine, or a new Plug line)
+autocmd VimEnter * if len(filter(values(g:plugs), '!isdirectory(v:val.dir)'))
+  \| PlugInstall --sync | source $MYVIMRC
+\| endif

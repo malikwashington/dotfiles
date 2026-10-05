@@ -8,3 +8,7 @@ zshrc.local
 
 # karabiner writes these next to karabiner.json
 karabiner/automatic_backups/
+
+# vim: plugins are installed by vim-plug from the Plug list in vimrc
+vim/plugged/
+vim/.netrwhist

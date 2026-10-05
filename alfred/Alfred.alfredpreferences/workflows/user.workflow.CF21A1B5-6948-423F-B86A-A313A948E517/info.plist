@@ -350,10 +350,13 @@
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "0{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "0{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -361,7 +364,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -400,13 +403,16 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "{query}";
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "{$argv[1]}";
 if (is_numeric(mb_substr($query, 0, 1))) {
-	$query = "0.{query}";	
+	$query = "0.{$argv[1]}";	
 	include_once "./process.php";
-}</string>
+}
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -414,7 +420,7 @@ if (is_numeric(mb_substr($query, 0, 1))) {
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -453,13 +459,16 @@ if (is_numeric(mb_substr($query, 0, 1))) {
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "{query}";
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "{$argv[1]}";
 if (is_numeric(mb_substr($query, 0, 1))) {
-	$query = "-{query}";	
+	$query = "-{$argv[1]}";	
 	include_once "./process.php";
-}</string>
+}
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -467,7 +476,7 @@ if (is_numeric(mb_substr($query, 0, 1))) {
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -506,10 +515,13 @@ if (is_numeric(mb_substr($query, 0, 1))) {
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "1{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "1{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -517,7 +529,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -556,10 +568,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "2{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "2{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -567,7 +582,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -606,10 +621,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "3{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "3{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -617,7 +635,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -656,10 +674,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "4{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "4{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -667,7 +688,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -706,10 +727,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "5{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "5{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -717,7 +741,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -756,10 +780,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "6{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "6{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -767,7 +794,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -806,10 +833,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "7{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "7{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -817,7 +847,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -856,10 +886,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "8{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "8{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -867,7 +900,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -906,10 +939,13 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string></string>
 				<key>script</key>
-				<string>$query = "9{query}";
-include_once "./process.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "9{$argv[1]}";
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -917,7 +953,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<false/>
 			</dict>
@@ -956,11 +992,14 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string>Calculating...</string>
 				<key>script</key>
-				<string>$query = "{query}";
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "{$argv[1]}";
 $action = 'vat';
-include_once "./process.php";</string>
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -968,7 +1007,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string>Calculate VAT</string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<true/>
 			</dict>
@@ -1026,11 +1065,14 @@ include_once "./process.php";</string>
 				<key>runningsubtext</key>
 				<string>Calculating Time...</string>
 				<key>script</key>
-				<string>$query = "{query}";
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+$query = "{$argv[1]}";
 $action = 'time';
-include_once "./process.php";</string>
+include_once "./process.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -1038,7 +1080,7 @@ include_once "./process.php";</string>
 				<key>title</key>
 				<string>Calculate Time</string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 				<key>withspace</key>
 				<true/>
 			</dict>
@@ -1131,13 +1173,16 @@ include_once "./process.php";</string>
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>include_once "./workflow/lib/clear.php";</string>
+				<string>PATH=/opt/homebrew/bin:/usr/local/bin:$PATH php -d display_errors=stderr -- "$1" &lt;&lt;'PHP'
+&lt;?php
+include_once "./workflow/lib/clear.php";
+PHP</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>type</key>
-				<integer>1</integer>
+				<integer>0</integer>
 			</dict>
 			<key>type</key>
 			<string>alfred.workflow.action.script</string>
@@ -1507,193 +1552,193 @@ If you need help please do not hesitate to open an issue filling all the questio
 		<key>00D9A9DF-F127-4AD2-A690-9839954F0748</key>
 		<dict>
 			<key>xpos</key>
-			<real>250</real>
+			<real>250.0</real>
 			<key>ypos</key>
-			<real>35</real>
+			<real>35.0</real>
 		</dict>
 		<key>02CB4726-DF90-475A-835E-0038EE019394</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>35</real>
+			<real>35.0</real>
 		</dict>
 		<key>03AE9542-EE54-423A-86E0-9B669EDE5A98</key>
 		<dict>
 			<key>xpos</key>
-			<real>290</real>
+			<real>290.0</real>
 			<key>ypos</key>
-			<real>1680</real>
+			<real>1680.0</real>
 		</dict>
 		<key>03F82D1C-9ACF-4789-91FD-9CCF291DEFFE</key>
 		<dict>
 			<key>xpos</key>
-			<real>410</real>
+			<real>410.0</real>
 			<key>ypos</key>
-			<real>1360</real>
+			<real>1360.0</real>
 		</dict>
 		<key>0A003B52-98B8-4E6C-927C-1A463F47C612</key>
 		<dict>
 			<key>xpos</key>
-			<real>290</real>
+			<real>290.0</real>
 			<key>ypos</key>
-			<real>1800</real>
+			<real>1800.0</real>
 		</dict>
 		<key>211A2F0B-BCFD-4FBD-B058-548162E358B4</key>
 		<dict>
 			<key>xpos</key>
-			<real>365</real>
+			<real>365.0</real>
 			<key>ypos</key>
-			<real>1770</real>
+			<real>1770.0</real>
 		</dict>
 		<key>2679D5D4-9D36-4AD4-A1EE-59EACA36C6E9</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>160</real>
+			<real>160.0</real>
 		</dict>
 		<key>35605323-7862-4781-94FE-ED0261247FB2</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>1095</real>
+			<real>1095.0</real>
 		</dict>
 		<key>3D4DB816-B39C-482D-80EA-3F64F3DF1644</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>1770</real>
+			<real>1770.0</real>
 		</dict>
 		<key>65F736EC-3B8C-4B6D-BE2C-837A63AC34A3</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>1225</real>
+			<real>1225.0</real>
 		</dict>
 		<key>6B5446AC-124D-4626-92C3-D0CA1D94D27F</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>510</real>
+			<real>510.0</real>
 		</dict>
 		<key>6B6A13A8-C671-4033-A793-EE772BA1FB48</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>740</real>
+			<real>740.0</real>
 		</dict>
 		<key>73B44DBE-FC34-4F54-8A7D-A1EAA2A0EE58</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>1475</real>
+			<real>1475.0</real>
 		</dict>
 		<key>810259C6-0B1F-4440-99F4-7821B5226D70</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>975</real>
+			<real>975.0</real>
 		</dict>
 		<key>9059D0AE-7BF8-414C-8594-0F680FC38945</key>
 		<dict>
 			<key>xpos</key>
-			<real>250</real>
+			<real>250.0</real>
 			<key>ypos</key>
-			<real>160</real>
+			<real>160.0</real>
 		</dict>
 		<key>92A43CD2-2690-4939-8B4C-7ACD21A03287</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>860</real>
+			<real>860.0</real>
 		</dict>
 		<key>9B97B9DE-FB12-4F5A-AAF8-4608DF0C7B14</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>395</real>
+			<real>395.0</real>
 		</dict>
 		<key>ABA18E77-71E3-494A-8735-A60799F419B9</key>
 		<dict>
 			<key>xpos</key>
-			<real>570</real>
+			<real>570.0</real>
 			<key>ypos</key>
-			<real>1225</real>
+			<real>1225.0</real>
 		</dict>
 		<key>B65669C2-6057-4003-B79B-2AEFB92E07CE</key>
 		<dict>
 			<key>xpos</key>
-			<real>230</real>
+			<real>230.0</real>
 			<key>ypos</key>
-			<real>1680</real>
+			<real>1680.0</real>
 		</dict>
 		<key>BB2A4C00-3D9B-43BD-957F-AFF92B5A1DCB</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>625</real>
+			<real>625.0</real>
 		</dict>
 		<key>BEA1F80D-6781-4CB6-AA39-92C8A5D8BD82</key>
 		<dict>
 			<key>xpos</key>
-			<real>450</real>
+			<real>450.0</real>
 			<key>ypos</key>
-			<real>1475</real>
+			<real>1475.0</real>
 		</dict>
 		<key>D037BED7-D145-4DEB-8419-84840F408A48</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>280</real>
+			<real>280.0</real>
 		</dict>
 		<key>D0EBB9BB-23B4-4BF8-9776-01D12130DC2A</key>
 		<dict>
 			<key>note</key>
 			<string>Clear Cache</string>
 			<key>xpos</key>
-			<real>275</real>
+			<real>275.0</real>
 			<key>ypos</key>
-			<real>1475</real>
+			<real>1475.0</real>
 		</dict>
 		<key>D29D156D-3EB3-4E6A-97D4-DE50834BBDAD</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>1650</real>
+			<real>1650.0</real>
 		</dict>
 		<key>DAE2385A-3F7A-4CAE-8A23-EA406D2F5E6A</key>
 		<dict>
 			<key>xpos</key>
-			<real>365</real>
+			<real>365.0</real>
 			<key>ypos</key>
-			<real>1650</real>
+			<real>1650.0</real>
 		</dict>
 		<key>DEA519D6-6B0A-4B4A-9B56-917B28B78090</key>
 		<dict>
 			<key>xpos</key>
-			<real>230</real>
+			<real>230.0</real>
 			<key>ypos</key>
-			<real>1800</real>
+			<real>1800.0</real>
 		</dict>
 		<key>DEEA362A-4FDA-454E-9BC6-57B0F3C9FC10</key>
 		<dict>
 			<key>xpos</key>
-			<real>80</real>
+			<real>80.0</real>
 			<key>ypos</key>
-			<real>1340</real>
+			<real>1340.0</real>
 		</dict>
 	</dict>
 	<key>userconfigurationconfig</key>

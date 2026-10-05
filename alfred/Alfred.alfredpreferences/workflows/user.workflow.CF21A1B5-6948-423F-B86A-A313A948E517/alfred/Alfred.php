@@ -563,6 +563,7 @@ function getTranslationsPath($lang_file = '')
 function getTranslation($key = '', $lang = '')
 {
     $default_lang = 'en_EN';
+    $translations = [];
     $user_language = getVariable('language', $default_lang);
 
     if (is_array($lang)) {
