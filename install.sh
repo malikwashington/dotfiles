@@ -127,12 +127,13 @@ else
   link alfred/Alfred.alfredpreferences "$ALFRED_PREFS"
   if ((alfred_running)); then run open -b com.runningwithcrayons.Alfred; fi
 fi
-# mp3book — the workflow shells out to it (private repo, needs ssh access)
-MP3BOOK_REPO="git+ssh://git@github.com/malikwashington/mp3book"
+# mp3book — the workflow shells out to it (private repo; https so a read-only
+# token is enough, rather than handing the machine an ssh key)
+MP3BOOK_REPO="git+https://github.com/malikwashington/mp3book"
 if ! command -v mp3book >/dev/null; then
   if command -v uv >/dev/null; then
     echo "    uv tool install mp3book"
-    run uv tool install "$MP3BOOK_REPO" || warn "mp3book install failed (ssh access to the repo?)"
+    run uv tool install "$MP3BOOK_REPO" || warn "mp3book install failed (gh auth login, or a read-only token?)"
   else
     warn "mp3book missing: uv tool install $MP3BOOK_REPO"
   fi

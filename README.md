@@ -5,7 +5,7 @@ Personal config, symlinked into `~`. Machine-specific bits go in `~/.zshrc.local
 ## Install
 
 ```sh
-git clone git@github.com:malikwashington/dotfiles.git ~/Documents/dotfiles
+git clone https://github.com/malikwashington/dotfiles.git ~/Documents/dotfiles
 ~/Documents/dotfiles/install.sh --dry-run   # preview
 ~/Documents/dotfiles/install.sh
 ```
@@ -18,7 +18,7 @@ re-run. `brew bundle dump --force` rewrites it from what's currently installed;
 Safe to re-run (e.g. after pulling, or if the repo moves): links are repointed, anything in the way is moved to `<name>.bak-<timestamp>`, and this Mac's Alfred local settings are copied into the repo before Alfred is linked. The manual equivalent:
 
 ```sh
-git clone git@github.com:malikwashington/dotfiles.git ~/Documents/dotfiles
+git clone https://github.com/malikwashington/dotfiles.git ~/Documents/dotfiles
 cd ~/Documents/dotfiles
 
 # packages
