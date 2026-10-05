@@ -13,6 +13,55 @@ say()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m  %s\n' "$*"; }
 run()  { if ((DRY)); then echo "    [dry-run] $*"; else "$@"; fi; }
 
+# --- change log -------------------------------------------------------------
+# Every change made inside $HOME is recorded here so uninstall.sh can put the
+# machine back the way it was. Kept outside the repo: it describes this Mac.
+STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles"
+MANIFEST="$STATE_DIR/install.json"
+LOG="$STATE_DIR/install-$STAMP.log"
+RECORDS=()
+PRE_B=""   # formulae installed before this run
+PRE_C=""   # casks installed before this run
+BINS=""    # absolute paths of the binaries we built, for uninstall to remove
+
+# Everything this run prints also lands in the log, so a failed brew install can
+# be read back afterwards. Skipped on a dry run, which must not write anything.
+if ((DRY)); then
+  LOG=""
+else
+  mkdir -p "$STATE_DIR"
+  exec > >(tee -a "$LOG") 2>&1
+fi
+
+# record <action> <path> <type> <detail> <sha256> <mode> <our-target>
+#   action   link | copy | remove | backup
+#   type     absent | symlink | file | dir
+#   detail   the old symlink target, or the .bak path we moved it to
+#   sha256   checksum of the displaced file, so a restore can be verified
+#   mode     its permission bits
+#   target   what we put there, so uninstall can tell ours from yours
+# Fields are separated by \x1f, not tab: tab counts as IFS whitespace, so bash
+# collapses runs of it and a record with an empty middle field would shift left.
+SEP=$'\x1f'
+record() {
+  RECORDS+=("$1$SEP$2$SEP$3$SEP${4:-}$SEP${5:-}$SEP${6:-}$SEP${7:-}")
+}
+
+# prior_of <path>: "<type>|<detail>|<sha256>|<mode>" (| = \x1f) for what's there now
+prior_of() {
+  if [[ -L "$1" ]]; then
+    printf 'symlink%s%s%s%s' "$SEP" "$(readlink "$1")" "$SEP" "$SEP"
+  elif [[ -d "$1" ]]; then
+    printf 'dir%s%s%s%s%s' "$SEP" "$1.bak-$STAMP" "$SEP" "$SEP" "$(stat -f '%Lp' "$1" 2>/dev/null)"
+  elif [[ -e "$1" ]]; then
+    printf 'file%s%s%s%s%s%s' "$SEP" "$1.bak-$STAMP" \
+      "$SEP" "$(shasum -a 256 "$1" 2>/dev/null | cut -d' ' -f1)" \
+      "$SEP" "$(stat -f '%Lp' "$1" 2>/dev/null)"
+  else
+    printf 'absent%s%s%s' "$SEP" "$SEP" "$SEP"
+  fi
+}
+
 # backup <path>: move a real file/dir out of the way
 backup() {
   warn "backing up $1 -> $1.bak-$STAMP"
@@ -26,15 +75,157 @@ link() {
     echo "    ok  $dst"
     return
   fi
+  local -a P
+  IFS="$SEP" read -r -a P <<<"$(prior_of "$dst")"
   run mkdir -p "$(dirname "$dst")"
   if [[ -L "$dst" ]]; then
-    echo "    fix $dst (was -> $(readlink "$dst"))"
+    echo "    fix $dst (was -> ${P[1]:-})"
     run rm "$dst"
   elif [[ -e "$dst" ]]; then
     backup "$dst"
   fi
   echo "    new $dst -> $src"
   run ln -s "$src" "$dst"
+  record link "$dst" "${P[0]:-}" "${P[1]:-}" "${P[2]:-}" "${P[3]:-}" "$src"
+}
+
+# capture_versions: what everything was at install time, so a specific version
+# can be put back later. Written as TSV for write_manifest to fold in.
+capture_versions() {
+  local out="$1"
+  {
+    printf 'macos\t%s\n'  "$(sw_vers -productVersion 2>/dev/null)"
+    printf 'build\t%s\n'  "$(sw_vers -buildVersion 2>/dev/null)"
+    printf 'arch\t%s\n'   "$(uname -m 2>/dev/null)"
+    printf 'dotfiles_commit\t%s\n' "$(git -C "$DOTFILES" rev-parse HEAD 2>/dev/null)"
+    [[ -d "${CLI_TOOLS:-}/.git" ]] &&
+      printf 'cli_tools_commit\t%s\n' "$(git -C "$CLI_TOOLS" rev-parse HEAD 2>/dev/null)"
+    command -v brew >/dev/null && printf 'brew\t%s\n' "$(brew --version 2>/dev/null | head -1)"
+    command -v go   >/dev/null && printf 'go\t%s\n'   "$(go version 2>/dev/null)"
+    command -v vim  >/dev/null && printf 'vim\t%s\n'   "$(vim --version 2>/dev/null | head -1)"
+    command -v uv   >/dev/null && printf 'uv\t%s\n'    "$(uv --version 2>/dev/null)"
+    command -v ya   >/dev/null && printf 'yazi\t%s\n'  "$(ya --version 2>/dev/null)"
+    true
+  } > "$out"
+}
+
+# write_manifest: append this run's records, as JSON, atomically
+write_manifest() {
+  ((${#RECORDS[@]})) || { echo "    no changes to record"; return 0; }
+  if ((DRY)); then
+    echo "    [dry-run] would record ${#RECORDS[@]} change(s) in $MANIFEST"
+    return 0
+  fi
+  mkdir -p "$(dirname "$MANIFEST")"
+  local vfile bfile cfile
+  vfile="$(mktemp)"; bfile="$(mktemp)"; cfile="$(mktemp)"
+  capture_versions "$vfile"
+  if command -v brew >/dev/null; then
+    brew list --versions        > "$bfile" 2>/dev/null || true
+    brew list --cask --versions > "$cfile" 2>/dev/null || true
+  fi
+  printf '%s\n' "${RECORDS[@]}" |
+    MANIFEST="$MANIFEST" STAMP="$STAMP" DOTFILES="$DOTFILES" LOG="$LOG" \
+    VFILE="$vfile" BFILE="$bfile" CFILE="$cfile" \
+    PRE_B="$PRE_B" PRE_C="$PRE_C" BINS="$BINS" \
+    CLI_TOOLS="${CLI_TOOLS:-}" python3 -c '
+import json, os, sys
+
+path = os.environ["MANIFEST"]
+actions = []
+for line in sys.stdin.read().splitlines():
+    if not line.strip():
+        continue
+    action, p, ptype, detail, sha, mode, target = (line.split("\x1f") + [""] * 7)[:7]
+    prior = {"type": ptype}
+    if ptype == "symlink":
+        prior["target"] = detail
+    elif ptype in ("file", "dir"):
+        prior["backup"] = detail
+    if sha:
+        prior["sha256"] = sha
+    if mode:
+        prior["mode"] = mode
+    entry = {"action": action, "path": p, "prior": prior}
+    if target:
+        entry["target"] = target
+    actions.append(entry)
+
+
+def kv(path):
+    out = {}
+    try:
+        with open(path) as f:
+            for ln in f:
+                parts = ln.rstrip("\n").split("\t" if "\t" in ln else " ", 1)
+                if len(parts) == 2 and parts[0]:
+                    out[parts[0]] = parts[1].strip()
+    except OSError:
+        pass
+    return out
+
+
+versions = kv(os.environ.get("VFILE", ""))
+post_f = kv(os.environ.get("BFILE", ""))
+post_c = kv(os.environ.get("CFILE", ""))
+pre_f = kv(os.environ.get("PRE_B", ""))
+pre_c = kv(os.environ.get("PRE_C", ""))
+
+# Record the state after, plus exactly what changed, so a restore knows what it
+# may remove (added) and what it would have to downgrade (changed).
+versions["formulae"] = post_f
+versions["casks"] = post_c
+versions["added"] = {
+    "formulae": sorted(set(post_f) - set(pre_f)),
+    "casks": sorted(set(post_c) - set(pre_c)),
+}
+versions["changed"] = {
+    "formulae": {k: {"from": pre_f[k], "to": post_f[k]}
+                 for k in set(pre_f) & set(post_f) if pre_f[k] != post_f[k]},
+    "casks": {k: {"from": pre_c[k], "to": post_c[k]}
+              for k in set(pre_c) & set(post_c) if pre_c[k] != post_c[k]},
+}
+
+try:
+    with open(path) as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        raise ValueError
+except (FileNotFoundError, ValueError, json.JSONDecodeError):
+    data = {}
+data.setdefault("schema", 1)
+data.setdefault("runs", [])
+def lines(path):
+    try:
+        with open(path) as f:
+            return sorted({ln.strip() for ln in f if ln.strip()})
+    except OSError:
+        return []
+
+
+data["runs"].append({
+    "stamp": os.environ["STAMP"],
+    "dotfiles": os.environ["DOTFILES"],
+    "log": os.environ.get("LOG", ""),
+    "cli_tools": os.environ.get("CLI_TOOLS", ""),
+    "binaries": lines(os.environ.get("BINS", "")),
+    "versions": versions,
+    "actions": actions,
+})
+
+tmp = path + ".tmp"
+with open(tmp, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+os.replace(tmp, path)
+print("    recorded %d file change(s); %d package(s) added, %d changed"
+      % (len(actions),
+         len(versions["added"]["formulae"]) + len(versions["added"]["casks"]),
+         len(versions["changed"]["formulae"]) + len(versions["changed"]["casks"])))
+print("    manifest: %s" % path)
+'
+  rm -f "$vfile" "$bfile" "$cfile" "$PRE_B" "$PRE_C" "$BINS"
+  echo "    log: $LOG"
 }
 
 # --- homebrew + packages ---------------------------------------------------
@@ -48,8 +239,18 @@ if ! command -v brew >/dev/null; then
   fi
 fi
 if command -v brew >/dev/null; then
+  # snapshot first: "what this run added" is post minus pre, and uninstall.sh
+  # needs that to know what it may remove.
+  if ((DRY)); then
+    echo "    [dry-run] would snapshot installed formulae/casks"
+  else
+    PRE_B="$(mktemp)"; PRE_C="$(mktemp)"
+    brew list --versions        > "$PRE_B" 2>/dev/null || true
+    brew list --cask --versions > "$PRE_C" 2>/dev/null || true
+    echo "    snapshot: $(wc -l <"$PRE_B" | tr -d ' ') formulae, $(wc -l <"$PRE_C" | tr -d ' ') casks already installed"
+  fi
   echo "    brew bundle (see Brewfile)"
-  run brew bundle install --file="$DOTFILES/Brewfile" --no-upgrade
+  run brew bundle install --file="$DOTFILES/Brewfile" --no-upgrade --verbose
 else
   warn "skipping Brewfile: no brew on PATH"
 fi
@@ -60,6 +261,7 @@ link zsh/zshrc "$HOME/.zshrc"
 if [[ ! -e "$HOME/.zshrc.local" ]]; then
   echo "    new ~/.zshrc.local from example (edit it)"
   run cp "$DOTFILES/zsh/zshrc.local.example" "$HOME/.zshrc.local"
+  record copy "$HOME/.zshrc.local" absent "" "" "" "$DOTFILES/zsh/zshrc.local.example"
 fi
 
 # --- cli-tools (separate repo: my own go utilities) -------------------------
@@ -75,24 +277,48 @@ else
   echo "    clone $CLI_TOOLS_REPO"
   run git clone "$CLI_TOOLS_REPO" "$CLI_TOOLS"
 fi
-# each tool is its own module, so build them one at a time. go install puts them
-# in $GOPATH/bin, which zsh/zshrc already has on PATH.
-if command -v go >/dev/null; then
-  if ((DRY)); then
-    echo "    [dry-run] go install each module under $CLI_TOOLS"
-  else
-    for mod in "$CLI_TOOLS"/*/go.mod; do
-      [[ -e "$mod" ]] || continue
-      d="$(dirname "$mod")"
-      if (cd "$d" && go install .) 2>/dev/null; then
-        echo "    built $(basename "$d")"
-      else
-        warn "$(basename "$d") failed to build; run: cd $d && go install ."
-      fi
-    done
-  fi
+# Each tool is its own crate/module. Build whatever is there by whichever
+# toolchain it needs — go now, rust too, and new ones just get added here. Both
+# install into directories zsh/zshrc already has on PATH.
+if ((DRY)); then
+  echo "    [dry-run] build each module/crate under $CLI_TOOLS"
 else
-  warn "go not installed: run brew bundle (Brewfile), then re-run"
+  BINS="$(mktemp)"
+  built=0; failed=0
+  for d in "$CLI_TOOLS"/*/; do
+    d="${d%/}"
+    name="$(basename "$d")"
+    if [[ -f "$d/go.mod" ]]; then
+      if ! command -v go >/dev/null; then
+        warn "$name needs go: run brew bundle (Brewfile), then re-run"; failed=$((failed+1)); continue
+      fi
+      # ask go where the binary lands rather than guessing from the directory
+      target="$(cd "$d" && go list -f '{{.Target}}' . 2>/dev/null || true)"
+      if (cd "$d" && go install .) 2>/dev/null; then
+        echo "    built $name (go)"
+        [[ -n "$target" ]] && echo "$target" >> "$BINS"
+        built=$((built+1))
+      else
+        warn "$name failed to build; run: cd $d && go install ."
+        failed=$((failed+1))
+      fi
+    elif [[ -f "$d/Cargo.toml" ]]; then
+      if ! command -v cargo >/dev/null; then
+        warn "$name needs cargo: rustup-init, then re-run"; failed=$((failed+1)); continue
+      fi
+      if (cd "$d" && cargo install --path . --quiet) 2>/dev/null; then
+        echo "    built $name (rust)"
+        # cargo installs into $CARGO_HOME/bin under the package name
+        pkg="$(sed -n 's/^name[[:space:]]*=[[:space:]]*"\(.*\)"/\1/p' "$d/Cargo.toml" | head -1)"
+        echo "${CARGO_HOME:-$HOME/.cargo}/bin/${pkg:-$name}" >> "$BINS"
+        built=$((built+1))
+      else
+        warn "$name failed to build; run: cd $d && cargo install --path ."
+        failed=$((failed+1))
+      fi
+    fi
+  done
+  echo "    $built built, $failed failed"
 fi
 
 # --- vim -------------------------------------------------------------------
@@ -100,8 +326,12 @@ say vim
 # vim reads ~/.vim/vimrc, but ~/.vimrc would take precedence: remove the old link
 if [[ -L "$HOME/.vimrc" ]]; then
   echo "    rm  ~/.vimrc (old link, vim now reads ~/.vim/vimrc)"
+  record remove "$HOME/.vimrc" symlink "$(readlink "$HOME/.vimrc")" "" "" ""
   run rm "$HOME/.vimrc"
 elif [[ -e "$HOME/.vimrc" ]]; then
+  record backup "$HOME/.vimrc" file "$HOME/.vimrc.bak-$STAMP" \
+    "$(shasum -a 256 "$HOME/.vimrc" 2>/dev/null | cut -d' ' -f1)" \
+    "$(stat -f '%Lp' "$HOME/.vimrc" 2>/dev/null)" ""
   backup "$HOME/.vimrc"
 fi
 # carry over file-browser history before ~/.vim is moved aside
@@ -171,6 +401,9 @@ if ! command -v mp3book >/dev/null; then
     warn "mp3book missing: uv tool install $MP3BOOK_REPO"
   fi
 fi
+
+say record
+write_manifest
 
 say done
 ((DRY)) && echo "    (dry run: nothing changed)"

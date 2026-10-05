@@ -194,10 +194,47 @@ ghoff() {
   print "ghoff: agent now holds: $(ssh-add -l 2>&1)"
 }
 
-# signoff — leaving this Mac: drop every credential this config can load.
+# signoff — leaving this Mac. By default it puts the configs install.sh
+# replaced back, deletes the cli-tools checkout and the binaries built from it,
+# and drops every credential this config can load.
+#
+#   signoff          configs back to original + cli-tools + credentials
+#   signoff --full   also uninstall the brew packages this repo added
+#   signoff -y       don't ask first
+#
 # ghoff deliberately stays narrow (just the key, so it's usable as a toggle);
 # this is the teardown that does the lot.
 signoff() {
+  local full=0 yes=0 a
+  for a in "$@"; do
+    case "$a" in
+      --full)    full=1 ;;
+      --yes|-y)  yes=1 ;;
+      *) print -u2 "signoff: unknown option $a"; return 2 ;;
+    esac
+  done
+
+  local script="${DOTFILES:-$HOME/Documents/dotfiles}/uninstall.sh"
+  if (( ! yes )); then
+    print "signoff will:"
+    [[ -x "$script" ]] && print "  - restore the configs install.sh replaced" \
+                       && print "  - delete ~/Documents/cli-tools and its binaries"
+    (( full )) && print "  - uninstall the brew packages this repo added"
+    print "  - drop the github ssh key, the op session and any stored token"
+    print -n "proceed? [y/N] "
+    local reply; read -r reply
+    [[ "$reply" == [yY]* ]] || { print "signoff: cancelled"; return 1 }
+  fi
+
+  # Files first, credentials after: uninstall.sh refuses to delete cli-tools
+  # when it holds unpushed work, and that warning is only actionable while the
+  # key is still loaded.
+  if [[ -x "$script" ]]; then
+    if (( full )); then "$script" --full; else "$script"; fi
+  else
+    print -u2 "signoff: $script not found; skipping the file restore"
+  fi
+
   ghoff
 
   # any other identity in the agent goes too — a teardown, not a toggle
