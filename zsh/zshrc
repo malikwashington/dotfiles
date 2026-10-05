@@ -188,6 +188,39 @@ ghoff() {
   print "ghoff: agent now holds: $(ssh-add -l 2>&1)"
 }
 
+# signoff — leaving this Mac: drop every credential this config can load.
+# ghoff deliberately stays narrow (just the key, so it's usable as a toggle);
+# this is the teardown that does the lot.
+signoff() {
+  ghoff
+
+  # any other identity in the agent goes too — a teardown, not a toggle
+  if ssh-add -l >/dev/null 2>&1; then
+    ssh-add -D >/dev/null 2>&1 && print "signoff: cleared the remaining ssh-agent identities"
+  fi
+
+  # op CLI session. `unset -m` takes a pattern; $parameters would need
+  # zmodload zsh/parameter, and silently misbehaves without it.
+  local had=""
+  [[ -n "$(typeset +m 'OP_SESSION_*')" ]] && had=yes
+  if command -v op >/dev/null; then
+    op signout --all >/dev/null 2>&1 || true
+    unset -m 'OP_SESSION_*'
+    if [[ -n "$had" ]]; then
+      print "signoff: closed the op CLI session"
+    else
+      print "signoff: op signed out (no session variables were set)"
+    fi
+  fi
+
+  # a github https token, if gh-login was ever run here: keychain + gh keyring
+  if command -v gh-logout >/dev/null; then
+    gh-logout
+  fi
+
+  print "signoff: done"
+}
+
 # ---------- functions ----------
 # fuzzy cd: pick a directory under $1 (default .) with fzf
 fcd() {
