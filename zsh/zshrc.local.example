@@ -11,3 +11,9 @@ fi
 
 # personal servers
 alias sb='ssh -i ~/.ssh/aws.pem ubuntu@YOUR_SERVER_IP'
+
+# github ssh key for ghon — the 1Password SSH Key item holding it.
+# List candidates with: op item list --categories "SSH Key"
+# export GH_SSH_KEY_REF='op://Private/GitHub SSH/private key'
+# export GH_SSH_PUB_REF='op://Private/GitHub SSH/public key'
+# export GH_SSH_TTL=8h

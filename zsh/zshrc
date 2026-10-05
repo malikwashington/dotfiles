@@ -119,15 +119,73 @@ alias windows='say "Good Morning! This is the start of something great!" && caff
 
 # -- bash --
 #   sheet     Google Sheets bridge; reads its creds from 1Password. ($DOTFILES/bin/sheet)
-#   gh-login  log this Mac into github over https and wire git up to the token
-#   gh-logout drop the token and the keychain credential again
-alias ghon='gh-login'
-alias ghoff='gh-logout'
+#   gh-logout one-off: purge a stored github https token from this Mac's
+#             keychain and gh's keyring. Unrelated to ghon/ghoff below.
 command -v portkill >/dev/null && alias pk='portkill'   # not installed on this machine
 
 # -- python --
 #   mp3book   audiobook builder, required by the mp3book Alfred workflow.
 #             install: uv tool install mp3book
+
+# ---------- github ssh key (session-only) ----------
+# The private key lives in 1Password and is never written to this machine.
+# ghon reads it straight into ssh-agent's memory; ghoff takes it back out.
+# --apple-use-keychain is deliberately not used, so the key does not survive
+# ghoff, the TTL expiring, a logout or a reboot.
+#
+# 1Password's own SSH agent would be tighter — the key would never leave the
+# vault — but its authorisation ends when 1Password locks, and this Mac locks
+# it every few minutes. In ssh-agent the lock state doesn't reach the key.
+#
+# Override any of these in ~/.zshrc.local:
+: ${GH_SSH_KEY_REF:=op://Private/GitHub SSH/private key}
+: ${GH_SSH_PUB_REF:=op://Private/GitHub SSH/public key}
+: ${GH_SSH_TTL:=8h}
+
+ghon() {
+  command -v op >/dev/null || { print -u2 "ghon: op not installed (run install.sh)"; return 1 }
+  # ssh-add exits 2 when it can't reach an agent at all, 1 when it's merely empty
+  ssh-add -l >/dev/null 2>&1
+  if (( $? == 2 )); then
+    print -u2 "ghon: no ssh-agent reachable (SSH_AUTH_SOCK=${SSH_AUTH_SOCK:-unset})"
+    return 1
+  fi
+  local key
+  if ! key="$(op read "$GH_SSH_KEY_REF" 2>&1)"; then
+    print -u2 "ghon: couldn't read $GH_SSH_KEY_REF"
+    print -u2 "      $key"
+    print -u2 "      1Password locked, or op not signed in? try: eval \$(op signin)"
+    return 1
+  fi
+  [[ -n "$key" ]] || { print -u2 "ghon: $GH_SSH_KEY_REF holds nothing"; return 1 }
+
+  # print -r adds the trailing newline that ssh-add requires and $(...) strips
+  if ! print -r -- "$key" | ssh-add -t "$GH_SSH_TTL" - 2>&1; then
+    print -u2 "ghon: ssh-add refused it — is that field the private key?"
+    return 1
+  fi
+  print "ghon: loaded for $GH_SSH_TTL, in ssh-agent memory only"
+  print "      verify with: ssh -T git@github.com"
+}
+
+ghoff() {
+  local pub
+  if command -v op >/dev/null && pub="$(op read "$GH_SSH_PUB_REF" 2>/dev/null)" && [[ -n "$pub" ]]; then
+    # remove just this key, so other loaded identities are left alone
+    if print -r -- "$pub" | ssh-add -d - 2>/dev/null; then
+      print "ghoff: removed from ssh-agent"
+    else
+      print "ghoff: that key wasn't loaded"
+    fi
+  else
+    # can't read the public key to identify ours (1Password locked?), so clear
+    # everything rather than leave it loaded
+    print -u2 "ghoff: couldn't read $GH_SSH_PUB_REF (1Password locked?)"
+    print -u2 "       clearing every identity instead, to be safe"
+    ssh-add -D 2>/dev/null || true
+  fi
+  print "ghoff: agent now holds: $(ssh-add -l 2>&1)"
+}
 
 # ---------- functions ----------
 # fuzzy cd: pick a directory under $1 (default .) with fzf
