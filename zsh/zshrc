@@ -122,11 +122,16 @@ alias windows='say "Good Morning! This is the start of something great!" && caff
 #   gh-logout one-off: purge a stored github https token from this Mac's
 #             keychain and gh's keyring. Unrelated to ghon/ghoff below.
 
-# -- go --  (github.com/malikwashington/cli-tools -> ~/Documents/cli-tools,
-#            built into $GOPATH/bin by install.sh)
-#   logq      query log files
+# github.com/malikwashington/cli-tools -> ~/Documents/cli-tools, grouped by
+# language and built by install.sh, which finds each module/crate wherever it is.
+
+# -- go --  (cli-tools/go/*, built into $GOPATH/bin)
+#   logq      query log files (work in progress)
 #   notify    run a command and get notified when it finishes
 #   portkill  kill whatever is listening on a port
+
+# -- rust --  (cli-tools/Rust/*, built into $CARGO_HOME/bin)
+#   nothing yet
 command -v portkill >/dev/null && alias pk='portkill'
 
 # -- python --

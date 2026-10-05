@@ -16,9 +16,26 @@ re-run. `brew bundle dump --force` rewrites it from what's currently installed;
 `brew bundle cleanup` lists what's installed but no longer tracked.
 
 It also clones [`cli-tools`](https://github.com/malikwashington/cli-tools) to
-`~/Documents/cli-tools` (or pulls it if already there) and builds each of its Go
-modules into `$GOPATH/bin`: `logq`, `notify`, `portkill`. A tool that fails to
-build is reported and skipped rather than stopping the install.
+`~/Documents/cli-tools` (or pulls it if already there) and builds the tools in it.
+They're grouped by language — `cli-tools/go/<tool>`, `cli-tools/Rust/<tool>` — and
+each is found by looking for its `go.mod` or `Cargo.toml` rather than by a fixed
+path, so adding a tool needs no change here. Go builds land in `$GOPATH/bin`, Rust
+in `$CARGO_HOME/bin`, both already on `PATH`. A tool that fails to build is
+reported and skipped rather than stopping the install.
+
+## Undoing it
+
+`install.sh` records every change it makes in `$HOME` to
+`~/.local/state/dotfiles/install.json`, and tees each run to a log beside it.
+
+```sh
+./uninstall.sh --dry-run   # preview
+./uninstall.sh             # configs back to original, cli-tools and its binaries removed
+./uninstall.sh --full      # also remove the Homebrew packages this repo installed
+```
+
+`signoff` (a zsh function) does the same plus dropping every credential, for
+walking away from a machine: `signoff`, `signoff --full`, `-y` to skip the prompt.
 
 Safe to re-run (e.g. after pulling, or if the repo moves): links are repointed, anything in the way is moved to `<name>.bak-<timestamp>`, and this Mac's Alfred local settings are copied into the repo before Alfred is linked. The manual equivalent:
 

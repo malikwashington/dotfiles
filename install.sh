@@ -278,16 +278,21 @@ else
   run git clone "$CLI_TOOLS_REPO" "$CLI_TOOLS"
 fi
 # Each tool is its own crate/module. Build whatever is there by whichever
-# toolchain it needs — go now, rust too, and new ones just get added here. Both
-# install into directories zsh/zshrc already has on PATH.
+# toolchain it needs — go and rust now, more later. Both install into
+# directories zsh/zshrc already has on PATH.
+#
+# Found by searching for manifests rather than by a fixed layout, so
+# cli-tools/go/<tool> and cli-tools/Rust/<tool> both work, and so would a
+# regrouping later.
 if ((DRY)); then
   echo "    [dry-run] build each module/crate under $CLI_TOOLS"
 else
   BINS="$(mktemp)"
   built=0; failed=0
-  for d in "$CLI_TOOLS"/*/; do
-    d="${d%/}"
-    name="$(basename "$d")"
+  while IFS= read -r manifest; do
+    [[ -n "$manifest" ]] || continue
+    d="$(dirname "$manifest")"
+    name="${d#"$CLI_TOOLS"/}"
     if [[ -f "$d/go.mod" ]]; then
       if ! command -v go >/dev/null; then
         warn "$name needs go: run brew bundle (Brewfile), then re-run"; failed=$((failed+1)); continue
@@ -317,7 +322,10 @@ else
         failed=$((failed+1))
       fi
     fi
-  done
+  done < <(find "$CLI_TOOLS" -maxdepth 4 -type f \
+             \( -name go.mod -o -name Cargo.toml \) \
+             -not -path '*/.git/*' -not -path '*/target/*' -not -path '*/vendor/*' \
+             2>/dev/null | sort)
   echo "    $built built, $failed failed"
 fi
 
