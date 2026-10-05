@@ -20,14 +20,14 @@
                         ]
                     },
                     {
-                        "description": "Caps Lock -> Escape on release when tapped alone within 500ms; Control only in combination with another key, never on its own",
+                        "description": "Caps Lock -> Escape on release when tapped alone within 200ms; Control only in combination with another key, never on its own",
                         "manipulators": [
                             {
                                 "from": {
                                     "key_code": "caps_lock",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "parameters": { "basic.to_if_alone_timeout_milliseconds": 500 },
+                                "parameters": { "basic.to_if_alone_timeout_milliseconds": 200 },
                                 "to": [
                                     {
                                         "key_code": "left_control",
