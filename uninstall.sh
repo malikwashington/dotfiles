@@ -11,9 +11,9 @@
 # mp3book, and the vim plugins. Versions are reported so anything upgraded can
 # be put back deliberately.
 #
-# Language runtimes and toolchains are never uninstalled, even with --full.
-# Other formulae link against brew's python, and removing go/node/php breaks
-# much more than this repo ever set up.
+# Homebrew itself, and any language runtime or toolchain, are never uninstalled,
+# even with --full. Other formulae link against brew's python, and removing
+# go/node/php breaks much more than this repo ever set up.
 #
 # Usage: ./uninstall.sh [--dry-run] [--full] [--force]
 #   --dry-run  show what would happen
@@ -181,7 +181,10 @@ if ((FULL)); then
   # against by other formulae, the system has its own that must not be touched,
   # and taking out go/node/php breaks far more than this repo set up. Nothing
   # a clean uninstall buys is worth that risk.
-  PROTECTED='^(python([0-9@.]*)?|go|golang|node|nodejs|php|ruby|perl|rust|rustup|openjdk([@.0-9]*)?|lua|deno|bun|julia|erlang|elixir|zig|dotnet|mono)$'
+  # brew/homebrew first: Homebrew isn't a formula, so `brew uninstall brew`
+  # would only error, but never let it be attempted. Then the language runtimes
+  # and toolchains, for the reasons above.
+  PROTECTED='^(brew|homebrew|python([0-9@.]*)?|go|golang|node|nodejs|php|ruby|perl|rust|rustup|openjdk([@.0-9]*)?|lua|deno|bun|julia|erlang|elixir|zig|dotnet|mono)$'
   keep=(); drop=()
   for f in $added_f; do
     if [[ "$f" =~ $PROTECTED ]]; then keep+=("$f"); else drop+=("$f"); fi

@@ -472,10 +472,10 @@ else
   echo "    all workflow dependencies present"
 fi
 # Mouseless Messenger reads ~/Library/Messages/chat.db, which no package can
-# provide: Alfred needs Full Disk Access for it.
-if [[ ! -r "$HOME/Library/Messages/chat.db" ]]; then
-  warn "Mouseless Messenger also needs Full Disk Access for Alfred (chat.db unreadable)"
-fi
+# provide: Alfred needs Full Disk Access. Not testable from here — macOS grants
+# that per application, so this shell being unable to read the file says nothing
+# about whether Alfred can. Stated once rather than checked.
+echo "    note: Mouseless Messenger needs Full Disk Access for Alfred (grant once, in System Settings)"
 
 say record
 write_manifest
