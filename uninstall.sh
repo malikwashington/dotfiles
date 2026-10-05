@@ -11,6 +11,10 @@
 # mp3book, and the vim plugins. Versions are reported so anything upgraded can
 # be put back deliberately.
 #
+# Language runtimes and toolchains are never uninstalled, even with --full.
+# Other formulae link against brew's python, and removing go/node/php breaks
+# much more than this repo ever set up.
+#
 # Usage: ./uninstall.sh [--dry-run] [--full] [--force]
 #   --dry-run  show what would happen
 #   --full     also remove added packages (see above)
@@ -173,14 +177,29 @@ if ((FULL)); then
   say "packages (--full)"
   added_f="$(q 'import json,os;d=json.load(open(os.environ["MANIFEST"]));print(" ".join(sorted({x for r in d.get("runs",[]) for x in r.get("versions",{}).get("added",{}).get("formulae",[])})))')"
   added_c="$(q 'import json,os;d=json.load(open(os.environ["MANIFEST"]));print(" ".join(sorted({x for r in d.get("runs",[]) for x in r.get("versions",{}).get("added",{}).get("casks",[])})))')"
-  if [[ -n "$added_f" ]]; then
-    echo "    uninstall formulae: $added_f"
-    run brew uninstall --formula $added_f || warn "some formulae wouldn't uninstall (still depended on?)"
+  # Never remove a language runtime or toolchain. brew's python is linked
+  # against by other formulae, the system has its own that must not be touched,
+  # and taking out go/node/php breaks far more than this repo set up. Nothing
+  # a clean uninstall buys is worth that risk.
+  PROTECTED='^(python([0-9@.]*)?|go|golang|node|nodejs|php|ruby|perl|rust|rustup|openjdk([@.0-9]*)?|lua|deno|bun|julia|erlang|elixir|zig|dotnet|mono)$'
+  keep=(); drop=()
+  for f in $added_f; do
+    if [[ "$f" =~ $PROTECTED ]]; then keep+=("$f"); else drop+=("$f"); fi
+  done
+  if ((${#keep[@]})); then
+    warn "left installed (language/toolchain, removing it could break the system):"
+    echo "        ${keep[*]}"
+  fi
+  if ((${#drop[@]})); then
+    echo "    uninstall formulae: ${drop[*]}"
+    # no --ignore-dependencies: let brew refuse anything still depended on
+    run brew uninstall --formula "${drop[@]}" || warn "some formulae wouldn't uninstall (still depended on?)"
   else
-    echo "    no formulae were added by this repo"
+    echo "    no formulae to uninstall"
   fi
   if [[ -n "$added_c" ]]; then
     echo "    uninstall casks: $added_c"
+    # shellcheck disable=SC2086
     run brew uninstall --cask $added_c || warn "some casks wouldn't uninstall"
   else
     echo "    no casks were added by this repo"

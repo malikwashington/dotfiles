@@ -23,6 +23,7 @@ RECORDS=()
 PRE_B=""   # formulae installed before this run
 PRE_C=""   # casks installed before this run
 BINS=""    # absolute paths of the binaries we built, for uninstall to remove
+DEPS=""    # alfred workflow dependency check results, for the manifest
 
 # Everything this run prints also lands in the log, so a failed brew install can
 # be read back afterwards. Skipped on a dry run, which must not write anything.
@@ -127,7 +128,7 @@ write_manifest() {
   printf '%s\n' "${RECORDS[@]}" |
     MANIFEST="$MANIFEST" STAMP="$STAMP" DOTFILES="$DOTFILES" LOG="$LOG" \
     VFILE="$vfile" BFILE="$bfile" CFILE="$cfile" \
-    PRE_B="$PRE_B" PRE_C="$PRE_C" BINS="$BINS" \
+    PRE_B="$PRE_B" PRE_C="$PRE_C" BINS="$BINS" DEPS="$DEPS" \
     CLI_TOOLS="${CLI_TOOLS:-}" python3 -c '
 import json, os, sys
 
@@ -195,6 +196,23 @@ except (FileNotFoundError, ValueError, json.JSONDecodeError):
     data = {}
 data.setdefault("schema", 1)
 data.setdefault("runs", [])
+def deps_of(path):
+    """{workflow: {dep: present|missing}} from the dependency check"""
+    out = {}
+    try:
+        with open(path) as f:
+            for ln in f:
+                parts = ln.rstrip("\n").split("\t")
+                if len(parts) == 3:
+                    out.setdefault(parts[0], {})[parts[1]] = parts[2]
+    except OSError:
+        pass
+    return out
+
+
+deps = deps_of(os.environ.get("DEPS", ""))
+
+
 def lines(path):
     try:
         with open(path) as f:
@@ -209,6 +227,7 @@ data["runs"].append({
     "log": os.environ.get("LOG", ""),
     "cli_tools": os.environ.get("CLI_TOOLS", ""),
     "binaries": lines(os.environ.get("BINS", "")),
+    "alfred_deps": deps,
     "versions": versions,
     "actions": actions,
 })
@@ -218,13 +237,16 @@ with open(tmp, "w") as f:
     json.dump(data, f, indent=2)
     f.write("\n")
 os.replace(tmp, path)
+missing = sum(1 for w in deps.values() for v in w.values() if v == "missing")
+print("    recorded %d workflow dependency check(s), %d missing" % (
+    sum(len(w) for w in deps.values()), missing))
 print("    recorded %d file change(s); %d package(s) added, %d changed"
       % (len(actions),
          len(versions["added"]["formulae"]) + len(versions["added"]["casks"]),
          len(versions["changed"]["formulae"]) + len(versions["changed"]["casks"])))
 print("    manifest: %s" % path)
 '
-  rm -f "$vfile" "$bfile" "$cfile" "$PRE_B" "$PRE_C" "$BINS"
+  rm -f "$vfile" "$bfile" "$cfile" "$PRE_B" "$PRE_C" "$BINS" "$DEPS"
   echo "    log: $LOG"
 }
 
@@ -410,12 +432,59 @@ if ! command -v mp3book >/dev/null; then
   fi
 fi
 
+# --- alfred workflow dependencies ------------------------------------------
+# Each workflow shells out to things Alfred can't install. Without them a
+# workflow links fine and then fails silently, so name what's missing and say
+# which workflow it belongs to. Everything here is in the Brewfile, so a
+# miss means brew bundle didn't run or didn't finish.
+say "alfred dependencies"
+ALFRED_DEPS=(
+  "mp3book|mp3book ffmpeg ffprobe"
+  "clc|insect"
+  "Calculate Anything|php"
+  "Homebrew|brew"
+  "desk|python3"
+  "Mouseless Messenger|sqlite3"
+)
+((DRY)) || DEPS="$(mktemp)"
+dep_missing=0
+for spec in "${ALFRED_DEPS[@]}"; do
+  wf="${spec%%|*}"
+  miss=()
+  for dep in ${spec#*|}; do
+    if command -v "$dep" >/dev/null; then
+      [[ -n "$DEPS" ]] && printf '%s\t%s\tpresent\n' "$wf" "$dep" >> "$DEPS"
+    else
+      miss+=("$dep")
+      [[ -n "$DEPS" ]] && printf '%s\t%s\tmissing\n' "$wf" "$dep" >> "$DEPS"
+    fi
+  done
+  if ((${#miss[@]})); then
+    warn "$wf needs: ${miss[*]}"
+    dep_missing=$((dep_missing + ${#miss[@]}))
+  else
+    echo "    ok  $wf"
+  fi
+done
+if ((dep_missing)); then
+  warn "$dep_missing dependency(ies) missing — run brew bundle, or see the Brewfile"
+else
+  echo "    all workflow dependencies present"
+fi
+# Mouseless Messenger reads ~/Library/Messages/chat.db, which no package can
+# provide: Alfred needs Full Disk Access for it.
+if [[ ! -r "$HOME/Library/Messages/chat.db" ]]; then
+  warn "Mouseless Messenger also needs Full Disk Access for Alfred (chat.db unreadable)"
+fi
+
 say record
 write_manifest
 
 say done
 ((DRY)) && echo "    (dry run: nothing changed)"
 cat <<'EOF'
-    If Karabiner or Alfred can't read their settings, grant them access
-    in System Settings > Privacy & Security > Files and Folders (this repo is in ~/Documents).
+    If Karabiner or Alfred can't read their settings, grant them access in
+    System Settings > Privacy & Security > Files and Folders (this repo is in
+    ~/Documents). Mouseless Messenger needs Full Disk Access for Alfred
+    instead — it reads the Messages database directly.
 EOF

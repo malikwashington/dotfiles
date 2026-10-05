@@ -51,6 +51,13 @@ brew "herdr"                        # agent multiplexer; aliased to `h`
 # built from source by install.sh. They're bare modules ("module portkill"), not
 # fetchable paths, so brew/go install can't resolve them by name.
 
+# ---------- alfred workflow dependencies ----------
+# These are what the workflows shell out to. Without them a workflow links
+# fine and then fails silently, so install.sh verifies them by name.
+brew "ffmpeg"                       # mp3book: ffprobe for chapter lengths, ffmpeg to build the .m4b
+brew "insect"                       # clc: the calculator it pipes the query into
+# php (above) is Calculate Anything; brew itself is the Homebrew workflow
+
 # ---------- apps ----------
 cask "ghostty"                      # terminal (GPU-accelerated)
 cask "iterm2"
