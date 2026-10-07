@@ -25,6 +25,7 @@ export PATH
 
 # ---------- Set Defaults ----------
 export EDITOR='vim'
+export STARSHIP_CONFIG="$DOTFILES/starship/starship.toml"   # read straight from the repo, no symlink
 
 # ---------- shell options ----------
 setopt auto_cd                       # `Documents` on its own means `cd Documents`
@@ -109,6 +110,7 @@ alias nrd='npm run dev'
 alias gc='git commit -am'
 alias gp='git push --set-upstream origin'
 alias gs='git switch'
+command -v lazygit >/dev/null && alias lg='lazygit'
 
 # ---------- work ----------
 alias co='copilot'
