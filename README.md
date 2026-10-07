@@ -83,7 +83,7 @@ ln -s ~/Documents/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application
 
 ## Alfred notes
 
-Tracked workflows: mp3book (mine), clc, Temporary Email, and Calculate Anything. Calculate Anything is deprecated upstream and carries local fixes, so it is kept in full. The 1Password workflow is gitignored; install it from the Gallery.
+Tracked workflows: mp3book (mine), Alfred Gallery, BlueScope, Calculate Anything, clc, Dash, desk, Go to Here, Homebrew, Menu Bar Search, Mouseless Messenger, Search Alfred Workflows, and Temporary Email. Calculate Anything is deprecated upstream and carries local fixes, so it is kept in full. Gitignored, reinstall by hand: 1Password (from the Gallery) and Emoji picker (~59MB; from [GitHub](https://github.com/devnoname120/alfred-emoji-picker)). Dash workflow needs Dash.app, installed through Setapp, not Homebrew.
 The `mp3book` workflow needs the `mp3book` tool: `uv tool install mp3book`.
 
 ## hidutil notes

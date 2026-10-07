@@ -1,2 +1,8 @@
 # Reinstall from the Alfred Gallery; large and auto-updates
 Alfred.alfredpreferences/workflows/user.workflow.09D7F3B1-B25F-458A-B0E0-74C92815CD19/
+
+# Emoji picker: ~59MB of binary and emoji images; reinstall from
+# https://github.com/devnoname120/alfred-emoji-picker
+Alfred.alfredpreferences/workflows/user.workflow.78727FCB-9F9E-4F4C-9F8D-AE474D60C79E/
+
+__pycache__/
