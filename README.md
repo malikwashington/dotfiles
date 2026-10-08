@@ -27,6 +27,20 @@ path, so adding a tool needs no change here. Go builds land in `$GOPATH/bin`, Ru
 in `$CARGO_HOME/bin`, both already on `PATH`. A tool that fails to build is
 reported and skipped rather than stopping the install.
 
+## Updating
+
+```sh
+./update.sh --dry-run   # preview
+./update.sh             # pull the repos, upgrade brew/rust/uv/gh extensions/vim/yazi
+```
+
+Safe on a work Mac: it never uses sudo, never touches `~/.gitconfig`, `~/.ssh`,
+the keychain, 1Password or gh's login, and never prompts for a password (a repo
+it can't reach with the access the machine already has is skipped). On an
+MDM-enrolled Mac it installs nothing new: Brewfile entries that are missing are
+listed, not installed. `--managed` / `--personal` override the detection. Each
+run is logged to `~/.local/state/dotfiles/update-<timestamp>.log`.
+
 ## Undoing it
 
 `install.sh` records every change it makes in `$HOME` to
