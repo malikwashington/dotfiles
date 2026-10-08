@@ -277,6 +277,41 @@ else
   warn "skipping Brewfile: no brew on PATH"
 fi
 
+# --- rust (rustup is in the Brewfile; it ships no toolchain) ----------------
+# Homebrew's rustup is keg-only: cargo/rustc live in its opt/bin, which zshrc
+# adds to PATH. Put it on this script's PATH too, so cli-tools' Rust crates
+# build below. The toolchain itself lands in ~/.rustup.
+say rust
+RUSTUP_BIN="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/rustup/bin"
+[[ -d "$RUSTUP_BIN" ]] && PATH="$RUSTUP_BIN:$PATH"
+if command -v rustup >/dev/null; then
+  if rustup toolchain list 2>/dev/null | grep -q '^stable'; then
+    echo "    ok  stable toolchain"
+  else
+    echo "    rustup default stable"
+    run rustup default stable || warn "rust toolchain install failed; run: rustup default stable"
+  fi
+else
+  warn "rustup missing: run brew bundle (Brewfile), then re-run"
+fi
+
+# --- gh extensions (gh itself is in the Brewfile) ---------------------------
+say "gh extensions"
+GH_EXTENSIONS=(dlvhdr/gh-dash dlvhdr/gh-enhance)
+if command -v gh >/dev/null; then
+  installed="$(gh extension list 2>/dev/null | cut -f2)"
+  for ext in "${GH_EXTENSIONS[@]}"; do
+    if grep -qx "$ext" <<<"$installed"; then
+      echo "    ok  $ext"
+    else
+      echo "    gh extension install $ext"
+      run gh extension install "$ext" || warn "$ext install failed (gh auth login, then re-run)"
+    fi
+  done
+else
+  warn "gh missing: run brew bundle (Brewfile), then re-run"
+fi
+
 # --- zsh -------------------------------------------------------------------
 say zsh
 link zsh/zshrc "$HOME/.zshrc"
@@ -331,7 +366,7 @@ else
       fi
     elif [[ -f "$d/Cargo.toml" ]]; then
       if ! command -v cargo >/dev/null; then
-        warn "$name needs cargo: rustup-init, then re-run"; failed=$((failed+1)); continue
+        warn "$name needs cargo: brew install rustup && rustup default stable, then re-run"; failed=$((failed+1)); continue
       fi
       if (cd "$d" && cargo install --path . --quiet) 2>/dev/null; then
         echo "    built $name (rust)"
@@ -374,6 +409,10 @@ if command -v vim >/dev/null; then
   run vim -N -u "$DOTFILES/vim/vimrc" -i NONE -es -c 'PlugInstall --sync' -c 'qa!' </dev/null >/dev/null 2>&1 || warn "PlugInstall failed; open vim to retry"
 fi
 
+# --- git (delta is the pager; Brewfile installs it) -------------------------
+say git
+link git/gitconfig "$HOME/.gitconfig"
+
 # --- tmux ------------------------------------------------------------------
 say tmux
 link tmux/tmux.conf "$HOME/.config/tmux/tmux.conf"
@@ -391,6 +430,30 @@ if command -v ya >/dev/null; then
   run ya pkg install >/dev/null || warn "ya pkg install failed"
 else
   warn "yazi not installed: brew install yazi, then re-run"
+fi
+
+# --- bettercmdtab (Cmd+Tab replacement; the cask is in the Brewfile) --------
+# Stays open until Return/Esc, h/j/k/l to move, a visible highlight. The
+# karabiner rule "BetterCmdTab: ..." relies on the stay-open settings: it maps
+# h/j/k/l to arrows while Cmd is held, because the window strip only takes arrows.
+say bettercmdtab
+BCT_ID=pro.bettercmdtab.BetterCmdTab
+if [[ -d /Applications/BetterCmdTab.app ]]; then
+  bct_running=0
+  pgrep -f BetterCmdTab.app >/dev/null && bct_running=1
+  # it rewrites its preferences on quit, so write them while it's closed
+  ((bct_running)) && run osascript -e "quit app id \"$BCT_ID\""
+  ((DRY)) || while pgrep -f BetterCmdTab.app >/dev/null; do sleep 0.2; done
+  run defaults write "$BCT_ID" Switcher.stayOpenOnRelease   -bool true
+  run defaults write "$BCT_ID" Switcher.stayOpenOnQuickTap  -bool true
+  run defaults write "$BCT_ID" Switcher.vimNavigationEnabled -bool true
+  run defaults write "$BCT_ID" Switcher.selectionColor      -string system
+  run defaults write "$BCT_ID" Switcher.boldSelectedLabel   -bool true
+  run defaults write "$BCT_ID" Switcher.showApplicationNames -bool true
+  echo "    settings applied (grant it Accessibility in System Settings if asked)"
+  ((bct_running)) && run open -b "$BCT_ID"
+else
+  warn "BetterCmdTab not installed: run brew bundle (Brewfile), then re-run"
 fi
 
 # --- alfred ----------------------------------------------------------------
@@ -445,6 +508,10 @@ ALFRED_DEPS=(
   "Homebrew|brew"
   "desk|python3"
   "Mouseless Messenger|sqlite3"
+  "BlueScope|blueutil"
+  "Search Alfred Workflows|python3"
+  "Menu Bar Search|swift"             # builds its helper on first run
+  "Dash|Dash.app"                     # from Setapp, so brew can't supply it
 )
 ((DRY)) || DEPS="$(mktemp)"
 dep_missing=0
@@ -452,7 +519,16 @@ for spec in "${ALFRED_DEPS[@]}"; do
   wf="${spec%%|*}"
   miss=()
   for dep in ${spec#*|}; do
-    if command -v "$dep" >/dev/null; then
+    # a *.app dep is an application, looked for where Setapp and casks put them
+    if [[ "$dep" == *.app ]]; then
+      found=0
+      for d in /Applications /Applications/Setapp "$HOME/Applications"; do
+        [[ -d "$d/$dep" ]] && found=1
+      done
+    else
+      command -v "$dep" >/dev/null && found=1 || found=0
+    fi
+    if ((found)); then
       [[ -n "$DEPS" ]] && printf '%s\t%s\tpresent\n' "$wf" "$dep" >> "$DEPS"
     else
       miss+=("$dep")
@@ -467,7 +543,7 @@ for spec in "${ALFRED_DEPS[@]}"; do
   fi
 done
 if ((dep_missing)); then
-  warn "$dep_missing dependency(ies) missing — run brew bundle, or see the Brewfile"
+  warn "$dep_missing dependency(ies) missing — run brew bundle, or see the Brewfile (apps: install from Setapp)"
 else
   echo "    all workflow dependencies present"
 fi

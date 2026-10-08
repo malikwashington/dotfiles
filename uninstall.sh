@@ -8,7 +8,7 @@
 #
 # --full also removes what install.sh *added* to the machine: the Homebrew
 # packages this repo installed (as recorded, so pre-existing ones are left),
-# mp3book, and the vim plugins. Versions are reported so anything upgraded can
+# mp3book, the gh extensions, and the vim plugins. Versions are reported so anything upgraded can
 # be put back deliberately.
 #
 # Homebrew itself, and any language runtime or toolchain, are never uninstalled,
@@ -230,6 +230,14 @@ print("\n".join(out))
     echo "    uv tool uninstall mp3book"
     run uv tool uninstall mp3book || warn "mp3book uninstall failed"
   fi
+  if command -v gh >/dev/null; then
+    installed="$(gh extension list 2>/dev/null | cut -f2)"
+    for ext in dlvhdr/gh-dash dlvhdr/gh-enhance; do
+      grep -qx "$ext" <<<"$installed" || continue
+      echo "    gh extension remove ${ext#*/gh-}"
+      run gh extension remove "${ext#*/gh-}" || warn "$ext removal failed"
+    done
+  fi
   echo "    vim plugins live in the repo (vim/plugged); delete the repo to remove them"
 fi
 
@@ -248,5 +256,6 @@ echo "    you're happy, or re-run install.sh to start a new one."
     Left in place (use --full to remove):
       brew packages this repo installed
       mp3book
+      gh extensions (gh-dash, gh-enhance)
       vim plugins
 EOF

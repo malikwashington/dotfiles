@@ -1,0 +1,45 @@
+# ~/.gitconfig — linked from dotfiles/git/gitconfig by install.sh.
+# Machine-specific overrides go in ~/.gitconfig.local (included at the end).
+[user]
+	email = malikwashington@gmail.com
+# Please adapt and uncomment the following lines:
+#	name = Malik Washington
+#	email = malik@Maliks-MacBook-Pro.local
+[pull]
+	rebase = false
+[core]
+	editor = code --wait
+	excludesfile = ~/.gitignore_global
+	pager = delta
+[init]
+	defaultBranch = main
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true          # n / N jump between files in a diff
+	line-numbers = true
+[merge]
+	conflictStyle = zdiff3   # shows the common ancestor; delta renders it
+[color]
+	ui = true
+[color "diff"]
+	meta = 11
+	frag = magenta bold
+	func = 146 bold
+	commit = yellow bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
+[credential]
+	helper = 
+	helper = /usr/local/share/gcm-core/git-credential-manager
+[credential "https://dev.azure.com"]
+	useHttpPath = true
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[include]
+	path = ~/.gitconfig.local

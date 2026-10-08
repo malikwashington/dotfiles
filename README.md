@@ -15,6 +15,10 @@ prerequisite), then links the configs. To change what a fresh Mac gets, edit `Br
 re-run. `brew bundle dump --force` rewrites it from what's currently installed;
 `brew bundle cleanup` lists what's installed but no longer tracked.
 
+GitHub CLI extensions are listed in `GH_EXTENSIONS` in `install.sh` (currently
+[`gh-dash`](https://github.com/dlvhdr/gh-dash), run as `gh dash`, and
+[`gh-enhance`](https://github.com/dlvhdr/gh-enhance), a GitHub Actions TUI run as `gh enhance`); missing ones are installed.
+
 It also clones [`cli-tools`](https://github.com/malikwashington/cli-tools) to
 `~/Documents/cli-tools` (or pulls it if already there) and builds the tools in it.
 They're grouped by language — `cli-tools/go/<tool>`, `cli-tools/Rust/<tool>` — and
@@ -48,6 +52,9 @@ brew bundle install --file=Brewfile
 
 # zsh
 ln -sf ~/Documents/dotfiles/zsh/zshrc ~/.zshrc
+
+# git
+ln -sf ~/Documents/dotfiles/git/gitconfig ~/.gitconfig
 cp -n zsh/zshrc.local.example ~/.zshrc.local   # then edit
 
 # vim (missing plugins install automatically on first launch)
@@ -75,6 +82,7 @@ ln -s ~/Documents/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application
 |---|---|
 | `zsh/` | `~/.zshrc` |
 | `vim/` | `~/.vim` (whole dir) |
+| `git/` | `~/.gitconfig` (delta as pager; per-machine extras in `~/.gitconfig.local`) |
 | `tmux/` | `~/.config/tmux/tmux.conf` |
 | `yazi/` | `~/.config/yazi/{theme,package}.toml` (flavors installed via `ya pkg install`) |
 | `karabiner/` | `~/.config/karabiner` (whole dir) |
@@ -85,6 +93,22 @@ ln -s ~/Documents/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application
 
 Tracked workflows: mp3book (mine), Alfred Gallery, BlueScope, Calculate Anything, clc, Dash, desk, Go to Here, Homebrew, Menu Bar Search, Mouseless Messenger, Search Alfred Workflows, and Temporary Email. Calculate Anything is deprecated upstream and carries local fixes, so it is kept in full. Gitignored, reinstall by hand: 1Password (from the Gallery) and Emoji picker (~59MB; from [GitHub](https://github.com/devnoname120/alfred-emoji-picker)). Dash workflow needs Dash.app, installed through Setapp, not Homebrew.
 The `mp3book` workflow needs the `mp3book` tool: `uv tool install mp3book`.
+
+## Keyboard (Karabiner)
+
+| Keys | Does |
+|---|---|
+| Caps Lock tap / hold | Escape (tap within 200ms) / Control (with another key) |
+| Shift + Caps Lock | real Caps Lock |
+| Both Shifts held | symbol/number layer (QWERTY row → 1–0, home row → brackets and operators) |
+| Left Control + H / L | switch Space left / right (Ctrl+← / →) |
+| Left Control + K / J | Mission Control / current app's windows (Ctrl+↑ / ↓) |
+| ⌘⇥ (BetterCmdTab) | switcher stays open; H/J/K/L move, Return picks, Esc cancels |
+| ⌘⇥, keep ⌘ held, J | the app's windows; H/L step, release ⌘ to pick, Esc goes back |
+
+Caps Lock's Control is left alone, so Ctrl+H/J/K/L keep their terminal meanings
+when typed with Caps Lock. Only the physical left Control key gets the Space and
+Mission Control bindings. BetterCmdTab's settings are applied by `install.sh`.
 
 ## hidutil notes
 

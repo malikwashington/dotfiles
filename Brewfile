@@ -18,7 +18,6 @@ brew "eza"                          # ls
 brew "bat"                          # cat
 brew "fd"                           # find
 brew "ripgrep"                      # grep
-brew "tree"
 brew "htop"
 brew "wget"
 brew "httpie"
@@ -29,7 +28,7 @@ brew "tmux"
 
 # ---------- git ----------
 brew "git"
-brew "git-delta"                    # diff pager
+brew "git-delta"                    # diff pager (git/gitconfig sets core.pager = delta)
 brew "lazygit"
 brew "gh"
 
@@ -56,11 +55,13 @@ brew "herdr"                        # agent multiplexer; aliased to `h`
 # fine and then fails silently, so install.sh verifies them by name.
 brew "ffmpeg"                       # mp3book: ffprobe for chapter lengths, ffmpeg to build the .m4b
 brew "insect"                       # clc: the calculator it pipes the query into
-# php (above) is Calculate Anything; brew itself is the Homebrew workflow
+brew "blueutil"                     # BlueScope: Bluetooth on/off/connect from the command line
+# php (above) is Calculate Anything; brew itself is the Homebrew workflow.
+# Dash (the Dash workflow) comes from Setapp; install.sh checks it's there.
 
 # ---------- apps ----------
 cask "ghostty"                      # terminal (GPU-accelerated)
-cask "iterm2"
+cask "bettercmdtab"                 # Cmd+Tab replacement: stays open after Cmd is released, hjkl to move
 cask "1password-cli"                # op — bin/sheet reads its creds from 1Password
 cask "copilot-cli"                  # aliased to `co`
 # cask "docker-desktop"            # off for now; re-enable when you want Docker back

@@ -17,6 +17,11 @@ export PYENV_ROOT="$HOME/.pyenv"
 export GOPATH="$HOME/go"
 [ -d "$GOPATH/bin" ] && path+=("$GOPATH/bin")
 
+# Rust — Homebrew's rustup is keg-only (not linked into bin); cargo install
+# puts binaries in ~/.cargo/bin
+[ -d "${HOMEBREW_PREFIX:-/opt/homebrew}/opt/rustup/bin" ] && path+=("${HOMEBREW_PREFIX:-/opt/homebrew}/opt/rustup/bin")
+[ -d "${CARGO_HOME:-$HOME/.cargo}/bin" ] && path+=("${CARGO_HOME:-$HOME/.cargo}/bin")
+
 # own scripts: this repo's bin/, then any machine-local ones
 for d in "$DOTFILES/bin" "$HOME/bin" "$HOME/.local/bin"; do
   [ -d "$d" ] && path+=("$d")

@@ -6,3 +6,6 @@ Alfred.alfredpreferences/workflows/user.workflow.09D7F3B1-B25F-458A-B0E0-74C9281
 Alfred.alfredpreferences/workflows/user.workflow.78727FCB-9F9E-4F4C-9F8D-AE474D60C79E/
 
 __pycache__/
+
+# Menu Bar Search compiles this helper on first run; built per machine
+Alfred.alfredpreferences/workflows/user.workflow.1C1602A3-EE58-46DC-90B8-BDAF3475025B/menu/menu
