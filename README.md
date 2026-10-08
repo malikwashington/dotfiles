@@ -53,8 +53,9 @@ brew bundle install --file=Brewfile
 # zsh
 ln -sf ~/Documents/dotfiles/zsh/zshrc ~/.zshrc
 
-# git
-ln -sf ~/Documents/dotfiles/git/gitconfig ~/.gitconfig
+# git (shared settings only; ~/.gitconfig stays this machine's own)
+mkdir -p ~/.config/git
+ln -sf ~/Documents/dotfiles/git/gitconfig ~/.config/git/config
 cp -n zsh/zshrc.local.example ~/.zshrc.local   # then edit
 
 # vim (missing plugins install automatically on first launch)
@@ -82,7 +83,7 @@ ln -s ~/Documents/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application
 |---|---|
 | `zsh/` | `~/.zshrc` |
 | `vim/` | `~/.vim` (whole dir) |
-| `git/` | `~/.gitconfig` (delta as pager; per-machine extras in `~/.gitconfig.local`) |
+| `git/` | `~/.config/git/config` (delta, colours; never `~/.gitconfig`, which keeps each machine's identity and credentials) |
 | `tmux/` | `~/.config/tmux/tmux.conf` |
 | `yazi/` | `~/.config/yazi/{theme,package}.toml` (flavors installed via `ya pkg install`) |
 | `karabiner/` | `~/.config/karabiner` (whole dir) |

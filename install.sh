@@ -410,8 +410,22 @@ if command -v vim >/dev/null; then
 fi
 
 # --- git (delta is the pager; Brewfile installs it) -------------------------
+# Shared settings go to ~/.config/git/config, which git reads *before*
+# ~/.gitconfig. ~/.gitconfig is never touched: it keeps each machine's identity
+# and credential helpers (and on a work Mac, whatever IT manages), and it wins.
 say git
-link git/gitconfig "$HOME/.gitconfig"
+GIT_XDG="${XDG_CONFIG_HOME:-$HOME/.config}/git/config"
+if [[ -e "$GIT_XDG" && ! -L "$GIT_XDG" ]]; then
+  warn "$GIT_XDG already exists; leaving it alone. To use the shared settings, add:"
+  echo "      [include]"
+  echo "          path = $DOTFILES/git/gitconfig"
+else
+  link git/gitconfig "$GIT_XDG"
+fi
+if [[ -L "$HOME/.gitconfig" && "$(readlink "$HOME/.gitconfig")" == "$DOTFILES/git/gitconfig" ]]; then
+  warn "~/.gitconfig links to the shared file (an older install did this); it should be"
+  warn "this machine's own file — restore it from ~/.gitconfig.bak-* by hand"
+fi
 
 # --- tmux ------------------------------------------------------------------
 say tmux

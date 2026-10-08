@@ -1,15 +1,13 @@
-# ~/.gitconfig — linked from dotfiles/git/gitconfig by install.sh.
-# Machine-specific overrides go in ~/.gitconfig.local (included at the end).
-[user]
-	email = malikwashington@gmail.com
-# Please adapt and uncomment the following lines:
-#	name = Malik Washington
-#	email = malik@Maliks-MacBook-Pro.local
+# Shared git settings — linked to ~/.config/git/config by install.sh.
+#
+# Appearance and workflow only: no identity, no credential helpers. git reads
+# this file *before* ~/.gitconfig, so anything in ~/.gitconfig (user.email,
+# credential helpers, a work machine's managed settings) overrides it.
+# install.sh never touches ~/.gitconfig.
 [pull]
 	rebase = false
 [core]
 	editor = code --wait
-	excludesfile = ~/.gitignore_global
 	pager = delta
 [init]
 	defaultBranch = main
@@ -30,16 +28,3 @@
 	old = red bold
 	new = green bold
 	whitespace = red reverse
-[credential]
-	helper = 
-	helper = /usr/local/share/gcm-core/git-credential-manager
-[credential "https://dev.azure.com"]
-	useHttpPath = true
-[credential "https://github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
-[credential "https://gist.github.com"]
-	helper = 
-	helper = !/opt/homebrew/bin/gh auth git-credential
-[include]
-	path = ~/.gitconfig.local
