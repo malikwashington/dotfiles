@@ -31,14 +31,13 @@ reported and skipped rather than stopping the install.
 
 ```sh
 ./update.sh --dry-run   # preview
-./update.sh             # pull the repos, upgrade brew/rust/uv/gh extensions/vim/yazi
+./update.sh             # pull the repos, upgrade brew/rust/uv/gh extensions/vim/yazi,
+                        # and install anything in the Brewfile that's missing
 ```
 
 Safe on a work Mac: it never uses sudo, never touches `~/.gitconfig`, `~/.ssh`,
 the keychain, 1Password or gh's login, and never prompts for a password (a repo
-it can't reach with the access the machine already has is skipped). On an
-MDM-enrolled Mac it installs nothing new: Brewfile entries that are missing are
-listed, not installed. `--managed` / `--personal` override the detection. Each
+it can't reach with the access the machine already has is skipped). Each
 run is logged to `~/.local/state/dotfiles/update-<timestamp>.log`.
 
 ## Undoing it

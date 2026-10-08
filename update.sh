@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# update.sh — bring this machine's tools and the repos up to date. Safe to run
-# on a managed (work) Mac: it only updates what is already installed.
+# update.sh — bring this machine's tools and the repos up to date, and install
+# anything the Brewfile lists that isn't here yet.
 #
 # What it will NEVER do, on any machine:
 #   - use sudo, or change system settings, launch agents or login items
@@ -9,27 +9,21 @@
 #   - prompt for a password: git runs with prompts off and a repo it can't
 #     reach with the access the machine already has is skipped
 #   - relink configs (that's install.sh's job)
-# On a managed Mac (MDM-enrolled) it also never installs anything new: Brewfile
-# entries that are missing are listed, not installed.
 #
 # Everything it prints is also written to ~/.local/state/dotfiles/update-*.log,
 # so there is a record of exactly what ran.
 #
-# Usage: ./update.sh [--dry-run] [--managed | --personal]
+# Usage: ./update.sh [--dry-run]
 #   --dry-run    show what would happen
-#   --managed    treat this Mac as managed even if it isn't MDM-enrolled
-#   --personal   treat it as personal (installs missing Brewfile entries)
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STAMP="$(date +%Y%m%d%H%M%S)"
-DRY=0 MODE=""
+DRY=0
 for a in "$@"; do
   case "$a" in
     --dry-run|-n) DRY=1 ;;
-    --managed)    MODE=managed ;;
-    --personal)   MODE=personal ;;
-    *) echo "usage: $0 [--dry-run] [--managed | --personal]" >&2; exit 2 ;;
+    *) echo "usage: $0 [--dry-run]" >&2; exit 2 ;;
   esac
 done
 
@@ -49,15 +43,6 @@ else
   LOG="$STATE_DIR/update-$STAMP.log"
   exec > >(tee -a "$LOG") 2>&1
 fi
-
-if [[ -z "$MODE" ]]; then
-  if profiles status -type enrollment 2>/dev/null | grep -q 'MDM enrollment: Yes'; then
-    MODE=managed
-  else
-    MODE=personal
-  fi
-fi
-say "mode: $MODE$( [[ $MODE == managed ]] && echo ' (updates only; nothing new is installed)')"
 
 FAILED=()
 
@@ -113,7 +98,7 @@ if [[ -d "$CLI_TOOLS/.git" ]]; then
   fi
 fi
 
-# --- homebrew: upgrade what's installed; add missing only on a personal Mac ---
+# --- homebrew: upgrade what's installed, then install the rest of the Brewfile -
 if command -v brew >/dev/null; then
   say homebrew
   run brew update --quiet || { warn "brew update failed"; FAILED+=("brew update"); }
@@ -131,16 +116,13 @@ if command -v brew >/dev/null; then
   done < <(grep -E '^(brew|cask) "' "$DOTFILES/Brewfile")
   missing="${missing%$'\n'}"
   if [[ -n "$missing" ]]; then
-    if [[ $MODE == managed ]]; then
-      warn "in the Brewfile but not installed here (left alone on a managed Mac):"
-      echo "$missing" | sed 's/^/      /'
-      echo "    install any your IT allows with: brew install [--cask] <name>"
-    else
-      echo "    installing Brewfile entries missing here:"
-      echo "$missing" | sed 's/^/      /'
-      run brew bundle install --file="$DOTFILES/Brewfile" --no-upgrade --quiet \
-        || { warn "brew bundle had failures"; FAILED+=("brew bundle"); }
-    fi
+    echo "    installing Brewfile entries missing here:"
+    echo "$missing" | sed 's/^/      /'
+    # --no-upgrade: the upgrade above already did that
+    run brew bundle install --file="$DOTFILES/Brewfile" --no-upgrade --quiet \
+      || { warn "brew bundle had failures"; FAILED+=("brew bundle"); }
+  else
+    echo "    everything in the Brewfile is installed"
   fi
 fi
 
