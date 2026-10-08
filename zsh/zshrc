@@ -329,6 +329,11 @@ take() {
 command -v pyenv    >/dev/null && eval "$(pyenv init -)"
 command -v starship >/dev/null && eval "$(starship init zsh)"
 command -v fzf      >/dev/null && eval "$(fzf --zsh)"
+# fzf and Ctrl-T list files with rg: faster, includes dotfiles, skips .gitignore'd and .git
+if command -v rg >/dev/null; then
+  export FZF_DEFAULT_COMMAND='rg --files --hidden --follow --glob "!.git"'
+  export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
 command -v zoxide   >/dev/null && eval "$(zoxide init zsh)"      # z
 command -v direnv   >/dev/null && eval "$(direnv hook zsh)"
 command -v fnm      >/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
