@@ -77,8 +77,8 @@ ln -s ~/Documents/dotfiles/vim ~/.vim   # vim reads ~/.vim/vimrc; plugins land i
 # tmux
 mkdir -p ~/.config/tmux && ln -sf ~/Documents/dotfiles/tmux/tmux.conf ~/.config/tmux/tmux.conf
 
-# yazi (brew install yazi; flavors are fetched from package.toml, not tracked)
-mkdir -p ~/.config/yazi && ln -sf ~/Documents/dotfiles/yazi/theme.toml ~/.config/yazi/theme.toml && ln -sf ~/Documents/dotfiles/yazi/package.toml ~/.config/yazi/package.toml
+# yazi (brew install yazi; flavors and plugins are fetched from package.toml, not tracked)
+mkdir -p ~/.config/yazi && for f in theme.toml package.toml init.lua yazi.toml keymap.toml; do ln -sf ~/Documents/dotfiles/yazi/$f ~/.config/yazi/$f; done && ya pkg install
 ya pkg install
 
 # karabiner — link the whole dir (Karabiner's GUI saves by replacing
@@ -98,7 +98,7 @@ ln -s ~/Documents/dotfiles/alfred/Alfred.alfredpreferences ~/Library/Application
 | `vim/` | `~/.vim` (whole dir) |
 | `git/` | `~/.config/git/config` (delta, colours; never `~/.gitconfig`, which keeps each machine's identity and credentials) |
 | `tmux/` | `~/.config/tmux/tmux.conf` |
-| `yazi/` | `~/.config/yazi/{theme,package}.toml` (flavors installed via `ya pkg install`) |
+| `yazi/` | `~/.config/yazi/{theme,package,yazi,keymap}.toml`, `init.lua` (flavor + plugins git, full-border, smart-enter installed via `ya pkg install`) |
 | `karabiner/` | `~/.config/karabiner` (whole dir) |
 | `hidutil/` | not installed — reference only (see below) |
 | `alfred/` | `~/Library/Application Support/Alfred/Alfred.alfredpreferences` |

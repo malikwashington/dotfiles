@@ -439,6 +439,9 @@ link karabiner "$HOME/.config/karabiner"
 say yazi
 link yazi/theme.toml "$HOME/.config/yazi/theme.toml"
 link yazi/package.toml "$HOME/.config/yazi/package.toml"
+link yazi/init.lua     "$HOME/.config/yazi/init.lua"
+link yazi/yazi.toml    "$HOME/.config/yazi/yazi.toml"
+link yazi/keymap.toml  "$HOME/.config/yazi/keymap.toml"
 if command -v ya >/dev/null; then
   echo "    ya pkg install"
   run ya pkg install >/dev/null || warn "ya pkg install failed"
