@@ -306,7 +306,8 @@ fi
 say "gh extensions"
 GH_EXTENSIONS=(dlvhdr/gh-dash dlvhdr/gh-enhance)
 if command -v gh >/dev/null; then
-  installed="$(gh extension list 2>/dev/null | cut -f2)"
+  # gh exits 4 when it isn't logged in; treat that as "none installed", not fatal
+  installed="$(gh extension list 2>/dev/null | cut -f2 || true)"
   for ext in "${GH_EXTENSIONS[@]}"; do
     if grep -qx "$ext" <<<"$installed"; then
       echo "    ok  $ext"
