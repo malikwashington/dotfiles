@@ -8,6 +8,7 @@
 # ---------- shell ----------
 brew "zsh-autosuggestions"          # greyed-out suggestion; Tab accepts it (see zsh/zshrc)
 brew "zsh-syntax-highlighting"
+brew "zsh-you-should-use"            # reminds you when an alias exists for what you typed
 brew "starship"                     # prompt
 brew "zoxide"                       # z — frecency-ranked cd
 brew "direnv"                       # per-directory env via .envrc

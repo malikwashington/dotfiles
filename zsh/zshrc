@@ -88,8 +88,10 @@ alias sourced='source ~/.zshrc'
 if command -v eza >/dev/null; then
   alias ls='eza --icons auto'
   alias tree='ls --tree'
+  alias ll='ls -l --git'             # git status column (blank outside a repo)
+else
+  alias ll='ls -l'
 fi
-alias ll='ls -l'                     # inherits the eza alias when present
 alias la='ls -la'
 command -v bat >/dev/null && alias cat='bat'
 alias code='code --new-window'
@@ -293,6 +295,69 @@ y() {
   rm -f -- "$tmp"
 }
 
+# wifi: pick and join Wi-Fi networks with fzf (macOS)
+#   wifi            scan, pick, join (asks for a password only for unsaved networks)
+#   wifi forget     pick saved networks to remove
+#   wifi saved      list saved networks
+#   wifi status     current network
+#   wifi on|off     Wi-Fi power
+# macOS hides network names (<redacted>) from apps without Location Services:
+# allow your terminal in System Settings > Privacy & Security > Location Services.
+wifi() {
+  local dev ssid out pass saved
+  dev=$(networksetup -listallhardwareports | awk '/Wi-Fi/ {getline; print $2}')
+  [[ -n $dev ]] || { echo "wifi: no Wi-Fi interface" >&2; return 1; }
+  saved=$(networksetup -listpreferredwirelessnetworks "$dev" | sed '1d; s/^[[:space:]]*//')
+
+  case "${1:-join}" in
+    status)
+      networksetup -getairportpower "$dev"
+      ssid=$(ipconfig getsummary "$dev" | awk -F' : ' '/^ +SSID :/ {print $2}')
+      echo "Network: ${ssid:-not connected}"
+      [[ $ssid == '<redacted>' ]] && echo "(names hidden: allow your terminal in Location Services)"
+      ;;
+    on|off) networksetup -setairportpower "$dev" "$1" ;;
+    saved)  print -r -- "$saved" ;;
+    forget)
+      local pick
+      pick=$(print -r -- "$saved" | fzf -m --prompt='forget> ' --header='Tab to mark several') || return
+      while IFS= read -r ssid; do
+        networksetup -removepreferredwirelessnetwork "$dev" "$ssid"
+      done <<< "$pick"
+      ;;
+    join)
+      echo "scanning…" >&2
+      # one line per network: signal<TAB>ssid<TAB>security, strongest first, one per name
+      ssid=$(system_profiler SPAirPortDataType 2>/dev/null | awk '
+          /Other Local Wi-Fi Networks:/ {on=1; next}
+          on && match($0, /^ */) && RLENGTH <= 10 && NF {on=0}   # next section
+          on && /^            [^ ].*:$/ {name=$0; sub(/^ +/, "", name); sub(/:$/, "", name); next}
+          on && /Security:/ {s=$0; sub(/.*Security: /, "", s); sec[name]=s}
+          on && /Signal \/ Noise:/ {split($0, a, ": "); sig=a[2]+0; if (!(name in best) || sig > best[name]) best[name]=sig}
+          END {for (n in best) printf "%d\t%s\t%s\n", best[n], n, sec[n]}' |
+        sort -t$'\t' -k1,1nr |
+        SAVED=$saved awk -F'\t' 'BEGIN {n=split(ENVIRON["SAVED"], s, "\n"); for (i=1;i<=n;i++) known[s[i]]=1}
+          {printf "%s\t%s %4d dBm  %s\n", $2, ($2 in known ? "★" : " "), $1, $3}' |
+        fzf --delimiter=$'\t' --with-nth=1,2 --prompt='wifi> ' --header='★ saved' |
+        cut -f1) || return
+      if [[ $ssid == '<redacted>' ]]; then
+        echo "wifi: macOS hid the network names — allow your terminal in Location Services" >&2
+        return 1
+      fi
+      if print -r -- "$saved" | grep -qxF -- "$ssid"; then
+        out=$(networksetup -setairportnetwork "$dev" "$ssid" 2>&1)
+      else
+        read -rs "pass?Password for $ssid (empty if open): "; echo
+        out=$(networksetup -setairportnetwork "$dev" "$ssid" ${pass:+"$pass"} 2>&1)
+      fi
+      # networksetup exits 0 even when joining fails; it only prints an error
+      if [[ -n $out ]]; then echo "wifi: $out" >&2; return 1; fi
+      echo "joined $ssid"
+      ;;
+    *) echo "usage: wifi [join|status|saved|forget|on|off]" >&2; return 2 ;;
+  esac
+}
+
 # take: mkdir+cd, or download+extract a tarball, or clone a git repo — then cd into it
 # (same behaviour as oh-my-zsh's, without the dependency)
 takeurl() {
@@ -344,6 +409,10 @@ command -v fnm      >/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 
 # ---------- zsh plugins (must be last) ----------
 BREW_SHARE="${HOMEBREW_PREFIX:-/opt/homebrew}/share"
+# you-should-use: reminds you when an alias exists for what you just typed
+[ -f "$BREW_SHARE/zsh-you-should-use/you-should-use.plugin.zsh" ] &&
+  source "$BREW_SHARE/zsh-you-should-use/you-should-use.plugin.zsh"
+
 [ -f "$BREW_SHARE/zsh-autosuggestions/zsh-autosuggestions.zsh" ] &&
   source "$BREW_SHARE/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
