@@ -653,7 +653,7 @@
                         ]
                     },
                     {
-                        "description": "BetterCmdTab: from Cmd+Tab until Cmd is released, H/J/K/L send arrows (the window strip only takes arrows, and Cmd+H would hide the app)",
+                        "description": "BetterCmdTab: from Cmd+Tab until Cmd is released, H/L move, J opens the app's windows, K goes back to the apps (sends the strip toggle, Cmd+\\)",
                         "manipulators": [
                             {
                                 "type": "basic",
@@ -665,6 +665,12 @@
                                     }
                                 },
                                 "to": [
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
+                                            "value": 0
+                                        }
+                                    },
                                     {
                                         "set_variable": {
                                             "name": "bettercmdtab_open",
@@ -720,7 +726,46 @@
                                     "key_code": "j",
                                     "modifiers": { "optional": ["any"] }
                                 },
-                                "to": [{ "key_code": "down_arrow" }]
+                                "to": [
+                                    { "key_code": "down_arrow" },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
+                                            "value": 1
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "conditions": [
+                                    {
+                                        "type": "variable_if",
+                                        "name": "bettercmdtab_open",
+                                        "value": 1
+                                    },
+                                    {
+                                        "type": "variable_if",
+                                        "name": "bettercmdtab_strip",
+                                        "value": 1
+                                    }
+                                ],
+                                "from": {
+                                    "key_code": "k",
+                                    "modifiers": { "optional": ["any"] }
+                                },
+                                "to": [
+                                    {
+                                        "key_code": "backslash",
+                                        "modifiers": ["left_command"]
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
+                                            "value": 0
+                                        }
+                                    }
+                                ],
+                                "type": "basic"
                             },
                             {
                                 "type": "basic",
@@ -757,6 +802,12 @@
                                             "name": "bettercmdtab_open",
                                             "value": 0
                                         }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
+                                            "value": 0
+                                        }
                                     }
                                 ]
                             },
@@ -778,6 +829,12 @@
                                     {
                                         "set_variable": {
                                             "name": "bettercmdtab_open",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
                                             "value": 0
                                         }
                                     }
@@ -803,6 +860,12 @@
                                             "name": "bettercmdtab_open",
                                             "value": 0
                                         }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
+                                            "value": 0
+                                        }
                                     }
                                 ]
                             },
@@ -824,6 +887,12 @@
                                     {
                                         "set_variable": {
                                             "name": "bettercmdtab_open",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
                                             "value": 0
                                         }
                                     }
@@ -849,6 +918,12 @@
                                             "name": "bettercmdtab_open",
                                             "value": 0
                                         }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
+                                            "value": 0
+                                        }
                                     }
                                 ]
                             },
@@ -865,6 +940,12 @@
                                             "name": "bettercmdtab_open",
                                             "value": 0
                                         }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
+                                            "value": 0
+                                        }
                                     }
                                 ]
                             },
@@ -879,6 +960,12 @@
                                     {
                                         "set_variable": {
                                             "name": "bettercmdtab_open",
+                                            "value": 0
+                                        }
+                                    },
+                                    {
+                                        "set_variable": {
+                                            "name": "bettercmdtab_strip",
                                             "value": 0
                                         }
                                     }

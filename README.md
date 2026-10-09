@@ -31,9 +31,13 @@ reported and skipped rather than stopping the install.
 
 ```sh
 ./update.sh --dry-run   # preview
-./update.sh             # pull the repos, upgrade brew/rust/uv/gh extensions/vim/yazi,
-                        # and install anything in the Brewfile that's missing
+./update.sh             # pull, upgrade, re-run install.sh, upgrade rust/uv/gh extensions/vim/yazi
 ```
+
+After pulling and `brew upgrade` it re-runs `install.sh`, which installs only
+what's new or missing: Brewfile packages, links (a new yazi or git config file,
+say), gh extensions, cli-tools, vim and yazi plugins, mp3book, and
+BetterCmdTab's settings (it's only restarted if one changed).
 
 Safe on a work Mac: it never uses sudo, never touches `~/.gitconfig`, `~/.ssh`,
 the keychain, 1Password or gh's login, and never prompts for a password (a repo

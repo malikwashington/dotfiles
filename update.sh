@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# update.sh — bring this machine's tools and the repos up to date, and install
-# anything the Brewfile lists that isn't here yet.
+# update.sh — bring this machine up to date: pull this repo, upgrade what's
+# installed, then re-run install.sh, which installs whatever the Brewfile and
+# configs list that isn't here yet (packages, links, gh extensions, cli-tools,
+# vim/yazi plugins, app settings), and finally upgrade toolchains and plugins.
 #
 # What it will NEVER do, on any machine:
 #   - use sudo, or change system settings, launch agents or login items
@@ -8,7 +10,10 @@
 #     (no `gh auth`, no `op`, no `ssh-add`, no credential helpers)
 #   - prompt for a password: git runs with prompts off and a repo it can't
 #     reach with the access the machine already has is skipped
-#   - relink configs (that's install.sh's job)
+#
+# New links behave as in install.sh: a real file in the way is moved to
+# <name>.bak-<timestamp> (and recorded for uninstall.sh), except
+# ~/.config/git/config, which is left alone if it isn't ours.
 #
 # Everything it prints is also written to ~/.local/state/dotfiles/update-*.log,
 # so there is a record of exactly what ran.
@@ -71,59 +76,26 @@ pull() {
 # --- dotfiles ----------------------------------------------------------------
 say dotfiles
 pull "$DOTFILES"
-# configs are symlinks into this repo, so a pull is already live — except new
-# links install.sh would create, which it reports rather than doing itself
-if ((MOVED)); then
-  echo "    pulled; linked configs (zsh, vim, tmux, karabiner, git, alfred…) are live now"
-  echo "    if a commit added a new link, run ./install.sh for it"
-fi
+# configs are symlinks into this repo, so a pull is live at once; new links
+# and settings are applied by the install.sh step below
+((MOVED)) && echo "    pulled; linked configs are live now"
 
-# --- cli-tools: pull, and rebuild only if something changed -------------------
-CLI_TOOLS="$HOME/Documents/cli-tools"
-if [[ -d "$CLI_TOOLS/.git" ]]; then
-  say cli-tools
-  pull "$CLI_TOOLS"
-  if ((MOVED)); then
-    while IFS= read -r manifest; do
-      d="$(dirname "$manifest")"; name="${d#"$CLI_TOOLS"/}"
-      if [[ -f "$d/go.mod" ]] && command -v go >/dev/null; then
-        if ((DRY)) || (cd "$d" && go install .) 2>/dev/null; then echo "    built $name"
-        else warn "$name failed to build"; FAILED+=("build $name"); fi
-      elif [[ -f "$d/Cargo.toml" ]] && command -v cargo >/dev/null; then
-        if ((DRY)) || (cd "$d" && cargo install --path . --quiet) 2>/dev/null; then echo "    built $name"
-        else warn "$name failed to build"; FAILED+=("build $name"); fi
-      fi
-    done < <(find "$CLI_TOOLS" -maxdepth 4 -type f \( -name go.mod -o -name Cargo.toml \) \
-               -not -path '*/.git/*' -not -path '*/target/*' -not -path '*/vendor/*' 2>/dev/null | sort)
-  fi
-fi
-
-# --- homebrew: upgrade what's installed, then install the rest of the Brewfile -
+# --- homebrew: upgrade what's installed ---------------------------------------
 if command -v brew >/dev/null; then
   say homebrew
   run brew update --quiet || { warn "brew update failed"; FAILED+=("brew update"); }
   # casks that update themselves (auto_updates) are left to their own updaters
   run brew upgrade || { warn "brew upgrade had failures"; FAILED+=("brew upgrade"); }
-  # what the Brewfile lists but isn't installed at all (outdated ≠ missing)
-  have_f="$(brew list --formula -1 2>/dev/null)"; have_c="$(brew list --cask -1 2>/dev/null)"
-  missing=""
-  while read -r kind name _; do
-    name="${name//\"/}"; name="${name%,}"
-    case "$kind" in
-      brew) grep -qx "${name##*/}" <<<"$have_f" || missing+="formula $name"$'\n' ;;
-      cask) grep -qx "$name" <<<"$have_c" || missing+="cask $name"$'\n' ;;
-    esac
-  done < <(grep -E '^(brew|cask) "' "$DOTFILES/Brewfile")
-  missing="${missing%$'\n'}"
-  if [[ -n "$missing" ]]; then
-    echo "    installing Brewfile entries missing here:"
-    echo "$missing" | sed 's/^/      /'
-    # --no-upgrade: the upgrade above already did that
-    run brew bundle install --file="$DOTFILES/Brewfile" --no-upgrade --quiet \
-      || { warn "brew bundle had failures"; FAILED+=("brew bundle"); }
-  else
-    echo "    everything in the Brewfile is installed"
-  fi
+fi
+
+# --- install.sh: Brewfile, rust, gh extensions, links, cli-tools, plugins, app
+# settings. Every step there skips what's already in place, so this installs
+# only what's new or missing.
+say install.sh
+if ((DRY)); then
+  "$DOTFILES/install.sh" --dry-run 2>&1 | sed 's/^/  /' || true
+else
+  "$DOTFILES/install.sh" 2>&1 | sed 's/^/  /' || { warn "install.sh had problems"; FAILED+=("install.sh"); }
 fi
 
 # --- language toolchains and tool managers -------------------------------------

@@ -2,12 +2,19 @@
 # install.sh — link these dotfiles into ~. Safe to re-run.
 # Existing links are repointed; real files/dirs in the way are moved to <name>.bak-<timestamp>.
 # Usage: ./install.sh [--dry-run]
+# update.sh runs it on every update, so each step only acts on what's missing
+# or stale.
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 STAMP="$(date +%Y%m%d%H%M%S)"
 DRY=0
-[[ "${1:-}" == "--dry-run" || "${1:-}" == "-n" ]] && DRY=1
+for a in "$@"; do
+  case "$a" in
+    --dry-run|-n) DRY=1 ;;
+    *) echo "usage: $0 [--dry-run]" >&2; exit 2 ;;
+  esac
+done
 
 say()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m  %s\n' "$*"; }
@@ -322,8 +329,8 @@ if [[ ! -e "$HOME/.zshrc.local" ]]; then
 fi
 
 # --- cli-tools (separate repo: my own go utilities) -------------------------
-say cli-tools
 CLI_TOOLS="$HOME/Documents/cli-tools"
+say cli-tools
 CLI_TOOLS_REPO="https://github.com/malikwashington/cli-tools.git"
 if [[ -d "$CLI_TOOLS/.git" ]]; then
   echo "    pull $CLI_TOOLS"
@@ -406,7 +413,7 @@ fi
 link vim "$HOME/.vim"
 if command -v vim >/dev/null; then
   echo "    installing plugins"
-  run vim -N -u "$DOTFILES/vim/vimrc" -i NONE -es -c 'PlugInstall --sync' -c 'qa!' </dev/null >/dev/null 2>&1 || warn "PlugInstall failed; open vim to retry"
+  run vim -N -u "$DOTFILES/vim/vimrc" -i NONE -es -c 'PlugInstall --sync' -c 'PlugClean!' -c 'qa!' </dev/null >/dev/null 2>&1 || warn "PlugInstall failed; open vim to retry"
 fi
 
 # --- git (delta is the pager; Brewfile installs it) -------------------------
@@ -455,20 +462,37 @@ fi
 # h/j/k/l to arrows while Cmd is held, because the window strip only takes arrows.
 say bettercmdtab
 BCT_ID=pro.bettercmdtab.BetterCmdTab
+# key type value [comment]; booleans read back from defaults as 1/0
+BCT_PREFS=(
+  "Switcher.stayOpenOnRelease bool 1"
+  "Switcher.stayOpenOnQuickTap bool 1"
+  "Switcher.vimNavigationEnabled bool 1"
+  "Switcher.panelOpacity int 100"         # solid panel: the pale selection highlight shows up better
+  "Switcher.boldSelectedLabel bool 1"
+  "Switcher.showApplicationNames bool 1"
+)
 if [[ -d /Applications/BetterCmdTab.app ]]; then
-  bct_running=0
-  pgrep -f BetterCmdTab.app >/dev/null && bct_running=1
-  # it rewrites its preferences on quit, so write them while it's closed
-  ((bct_running)) && run osascript -e "quit app id \"$BCT_ID\""
-  ((DRY)) || while pgrep -f BetterCmdTab.app >/dev/null; do sleep 0.2; done
-  run defaults write "$BCT_ID" Switcher.stayOpenOnRelease   -bool true
-  run defaults write "$BCT_ID" Switcher.stayOpenOnQuickTap  -bool true
-  run defaults write "$BCT_ID" Switcher.vimNavigationEnabled -bool true
-  run defaults write "$BCT_ID" Switcher.selectionColor      -string system
-  run defaults write "$BCT_ID" Switcher.boldSelectedLabel   -bool true
-  run defaults write "$BCT_ID" Switcher.showApplicationNames -bool true
-  echo "    settings applied (grant it Accessibility in System Settings if asked)"
-  ((bct_running)) && run open -b "$BCT_ID"
+  bct_stale=()
+  for spec in "${BCT_PREFS[@]}"; do
+    read -r key type value <<<"$spec"
+    [[ "$(defaults read "$BCT_ID" "$key" 2>/dev/null)" == "$value" ]] || bct_stale+=("$spec")
+  done
+  if ((${#bct_stale[@]} == 0)); then
+    echo "    ok  settings"
+  else
+    bct_running=0
+    pgrep -f BetterCmdTab.app >/dev/null && bct_running=1
+    # it rewrites its preferences on quit, so write them while it's closed
+    ((bct_running)) && run osascript -e "quit app id \"$BCT_ID\""
+    ((DRY)) || while pgrep -f BetterCmdTab.app >/dev/null; do sleep 0.2; done
+    for spec in "${bct_stale[@]}"; do
+      read -r key type value <<<"$spec"
+      [[ $type == bool ]] && { ((value)) && value=true || value=false; }
+      run defaults write "$BCT_ID" "$key" "-$type" "$value"
+    done
+    echo "    ${#bct_stale[@]} setting(s) applied (grant it Accessibility in System Settings if asked)"
+    ((bct_running)) && run open -b "$BCT_ID"
+  fi
 else
   warn "BetterCmdTab not installed: run brew bundle (Brewfile), then re-run"
 fi
@@ -569,6 +593,22 @@ fi
 # that per application, so this shell being unable to read the file says nothing
 # about whether Alfred can. Stated once rather than checked.
 echo "    note: Mouseless Messenger needs Full Disk Access for Alfred (grant once, in System Settings)"
+
+# --- stale links ------------------------------------------------------------
+# A file removed from this repo (the old iTerm2 config, say) leaves a link to
+# nothing on machines an older install.sh set up. Only links into this repo
+# whose target is gone are removed.
+say "stale links"
+stale=0
+while IFS= read -r l; do
+  t="$(readlink "$l")"
+  [[ "$t" == "$DOTFILES"/* && ! -e "$l" ]] || continue
+  echo "    rm  $l (pointed at ${t#"$DOTFILES"/}, no longer in the repo)"
+  record remove "$l" symlink "$t" "" "" ""
+  run rm "$l"; stale=$((stale+1))
+done < <(find "$HOME" "$HOME/.config" "$HOME/Library/Application Support/iTerm2" \
+           -maxdepth 3 -type l 2>/dev/null | sort -u)
+((stale)) || echo "    none"
 
 say record
 write_manifest
