@@ -564,7 +564,7 @@ for spec in "${ALFRED_DEPS[@]}"; do
     # a *.app dep is an application, looked for where Setapp and casks put them
     if [[ "$dep" == *.app ]]; then
       found=0
-      for d in /Applications /Applications/Setapp "$HOME/Applications"; do
+      for d in /Applications /Applications/Setapp "$HOME/Applications" "$HOME/Applications/Setapp"; do
         [[ -d "$d/$dep" ]] && found=1
       done
     else
