@@ -12,8 +12,8 @@ if [ $# -ne 1 ]; then
   exit 1
 fi
 
-URL=$(op read "op://Personal/GSheet .jobs Credential/website")
-TOKEN=$(op read "op://Personal/GSheet .jobs Credential/password")
+URL=$(op read "op://Private/GSheet .jobs Credential/website")
+TOKEN=$(op read "op://Private/GSheet .jobs Credential/password")
 
 payload=$(TOKEN="$TOKEN" python3 -c '
 import json, os, sys
