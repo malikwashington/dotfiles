@@ -9,3 +9,9 @@ require("full-border"):setup {
 require("git"):setup {
 	order = 1500,
 }
+
+-- relative-motions: number prefixes for motions, with relative line numbers
+require("relative-motions"):setup {
+	show_numbers = "relative",
+	show_motion = true,
+}
