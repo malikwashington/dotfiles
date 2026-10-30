@@ -1,0 +1,97 @@
+;; kanata port of karabiner/karabiner.json — DRAFT, not yet validated.
+;; Check with:  kanata --cfg kanata/kanata.kbd --check
+;; Same file on macOS and Linux; OS-specific bits are in (platform ...) blocks.
+;; BetterCmdTab is not ported: on Linux the window switcher handles it (see bottom).
+
+(defcfg
+  process-unmapped-keys yes
+  ;; `_` in any layer falls through to the base layer, not to defsrc
+  delegate-to-first-layer yes
+)
+
+(defsrc
+  q    w    e    r    t    y    u    i    o    p
+  caps a    s    d    f    g    h    j    k    l    ;
+  lsft z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl
+)
+
+(defalias
+  ;; Caps Lock: tap = Escape (within 200ms), hold = Control in combination only
+  capsth (tap-hold-release 200 200 esc lctl)
+  ;; Shift + Caps Lock = real Caps Lock
+  caps   (fork @capsth caps (lsft rsft))
+
+  ;; Both Shifts held = symbol/number layer
+  lsh    (multi lsft (layer-while-held lshift))
+  rsh    (multi rsft (layer-while-held rshift))
+  sym-r  (multi rsft (layer-while-held sym))
+  sym-l  (multi lsft (layer-while-held sym))
+
+  ;; Physical left Control = navigation layer; Caps Lock's Control is unaffected,
+  ;; so Ctrl+H/J/K/L still reach the terminal
+  lctl   (multi lctl (layer-while-held nav))
+)
+
+(deflayer base
+  _      _    _    _    _    _    _    _    _    _
+  @caps  _    _    _    _    _    _    _    _    _    _
+  @lsh   _    _    _    _    _    _    _    _    _    _    @rsh
+  @lctl
+)
+
+(deflayer lshift
+  _      _    _    _    _    _    _    _    _    _
+  _      _    _    _    _    _    _    _    _    _    _
+  _      _    _    _    _    _    _    _    _    _    _    @sym-r
+  _
+)
+
+(deflayer rshift
+  _      _    _    _    _    _    _    _    _    _
+  _      _    _    _    _    _    _    _    _    _    _
+  @sym-l _    _    _    _    _    _    _    _    _    _    _
+  _
+)
+
+;; Shift is physically held in this layer, so a plain key gives its shifted
+;; symbol ([ -> {) and (unmod ...) gives the unshifted one.
+;;   q-p : 1 2 3 4 5 6 7 8 9 0
+;;   a-; : ( ) { } [ ] _ = + -
+;;   z-/ : ` < > ! @ # $ % ^ &
+(deflayer sym
+  (unmod 1) (unmod 2) (unmod 3) (unmod 4) (unmod 5) (unmod 6) (unmod 7) (unmod 8) (unmod 9) (unmod 0)
+  _      9    0    [    ]    (unmod [) (unmod ]) -    (unmod =) =    (unmod -)
+  _      (unmod grv) ,  .    1    2    3    4    5    6    7    _
+  _
+)
+
+;; Control is held while this layer is active, so every output below already
+;; carries Control.
+(platform (macos)
+  ;; Same as Karabiner: Ctrl+arrows -> Spaces / Mission Control / app windows
+  (deflayer nav
+    _      _    _    _    _    _    _    _    _    _
+    _      _    _    _    _    _    left down up   right _
+    _      _    _    _    _    _    _    _    _    _    _    _
+    _
+  )
+)
+
+(platform (linux)
+  ;; GNOME defaults: Ctrl+Alt+Left/Right = workspace left/right,
+  ;; Super = Activities overview (closest to Mission Control),
+  ;; Alt+` = cycle the current app's windows.
+  ;; On Sway/Hyprland, bind these same combos in the WM config instead.
+  (deflayer nav
+    _      _    _    _    _    _    _    _    _    _
+    _      _    _    _    _    _    A-left (unmod A-grv) (unmod lmet) A-right _
+    _      _    _    _    _    _    _    _    _    _    _    _
+    _
+  )
+)
+
+;; BetterCmdTab on Linux: GNOME's Alt+Tab switcher already accepts arrow keys
+;; while Alt is held (Down opens the app's windows). For vim keys, use a
+;; switcher with configurable bindings (rofi/fuzzel `-show window`) instead of
+;; doing it here.

@@ -65,6 +65,7 @@ cask "ghostty"                      # terminal (GPU-accelerated)
 cask "bettercmdtab@beta"            # Cmd+Tab replacement (beta channel): stays open after Cmd is released, hjkl to move
 cask "1password-cli"                # op — bin/sheet reads its creds from 1Password
 cask "copilot-cli"                  # aliased to `co`
+cask "antigravity-cli"              # agy — Google Antigravity agents in the terminal
 # cask "docker-desktop"            # off for now; re-enable when you want Docker back
 
 # ---------- fonts (nerd fonts: starship and yazi need the glyphs) ----------

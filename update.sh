@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# update.sh — bring this machine up to date: pull this repo, upgrade what's
-# installed, then re-run install.sh, which installs whatever the Brewfile and
-# configs list that isn't here yet (packages, links, gh extensions, cli-tools,
-# vim/yazi plugins, app settings), and finally upgrade toolchains and plugins.
+# update.sh — sync this machine with the setup used elsewhere: pull this repo
+# (linked configs are live at once) and install whatever the Brewfile lists
+# that isn't here yet. It doesn't upgrade anything, and it doesn't run
+# install.sh; run that yourself on a fresh Mac or for new links.
 #
 # What it will NEVER do, on any machine:
 #   - use sudo, or change system settings, launch agents or login items
@@ -10,10 +10,6 @@
 #     (no `gh auth`, no `op`, no `ssh-add`, no credential helpers)
 #   - prompt for a password: git runs with prompts off and a repo it can't
 #     reach with the access the machine already has is skipped
-#
-# New links behave as in install.sh: a real file in the way is moved to
-# <name>.bak-<timestamp> (and recorded for uninstall.sh), except
-# ~/.config/git/config, which is left alone if it isn't ours.
 #
 # Everything it prints is also written to ~/.local/state/dotfiles/update-*.log,
 # so there is a record of exactly what ran.
@@ -76,53 +72,34 @@ pull() {
 # --- dotfiles ----------------------------------------------------------------
 say dotfiles
 pull "$DOTFILES"
-# configs are symlinks into this repo, so a pull is live at once; new links
-# and settings are applied by the install.sh step below
+# configs are symlinks into this repo, so a pull is live at once
 ((MOVED)) && echo "    pulled; linked configs are live now"
 
-# --- homebrew: upgrade what's installed ---------------------------------------
+# --- homebrew: install what the Brewfile lists but isn't here ----------------
+# Only what's missing. Nothing already installed is upgraded, and install.sh
+# isn't run: no links, plugins, toolchains or app settings are touched.
 if command -v brew >/dev/null; then
   say homebrew
-  run brew update --quiet || { warn "brew update failed"; FAILED+=("brew update"); }
-  # casks that update themselves (auto_updates) are left to their own updaters
-  run brew upgrade || { warn "brew upgrade had failures"; FAILED+=("brew upgrade"); }
-fi
-
-# --- install.sh: Brewfile, rust, gh extensions, links, cli-tools, plugins, app
-# settings. Every step there skips what's already in place, so this installs
-# only what's new or missing.
-say install.sh
-if ((DRY)); then
-  "$DOTFILES/install.sh" --dry-run 2>&1 | sed 's/^/  /' || true
+  have_f="$(brew list --formula -1 2>/dev/null)"; have_c="$(brew list --cask -1 2>/dev/null)"
+  missing=""
+  while read -r kind name _; do
+    name="${name//\"/}"; name="${name%,}"
+    case "$kind" in
+      brew) grep -qx "${name##*/}" <<<"$have_f" || missing+="formula $name"$'\n' ;;
+      cask) grep -qx "${name##*/}" <<<"$have_c" || missing+="cask $name"$'\n' ;;
+    esac
+  done < <(grep -E '^(brew|cask) "' "$DOTFILES/Brewfile")
+  missing="${missing%$'\n'}"
+  if [[ -n "$missing" ]]; then
+    echo "    installing Brewfile entries missing here:"
+    echo "$missing" | sed 's/^/      /'
+    run brew bundle install --file="$DOTFILES/Brewfile" --no-upgrade --quiet \
+      || { warn "brew bundle had failures"; FAILED+=("brew bundle"); }
+  else
+    echo "    everything in the Brewfile is installed"
+  fi
 else
-  "$DOTFILES/install.sh" 2>&1 | sed 's/^/  /' || { warn "install.sh had problems"; FAILED+=("install.sh"); }
-fi
-
-# --- language toolchains and tool managers -------------------------------------
-RUSTUP_BIN="${HOMEBREW_PREFIX:-/opt/homebrew}/opt/rustup/bin"
-[[ -d "$RUSTUP_BIN" ]] && PATH="$RUSTUP_BIN:$PATH"
-if command -v rustup >/dev/null && rustup toolchain list 2>/dev/null | grep -q .; then
-  say rust
-  run rustup update --no-self-update 2>&1 | grep -E 'updated|unchanged' | sed 's/^/    /' || true
-fi
-if command -v uv >/dev/null && [[ -n "$(uv tool list 2>/dev/null)" ]]; then
-  say "uv tools"
-  run uv tool upgrade --all || { warn "uv tool upgrade had failures (a private repo this machine can't reach?)"; FAILED+=("uv tools"); }
-fi
-if command -v gh >/dev/null && [[ -n "$(gh extension list 2>/dev/null)" ]]; then
-  say "gh extensions"
-  run gh extension upgrade --all || { warn "gh extension upgrade had failures"; FAILED+=("gh extensions"); }
-fi
-
-# --- editor and file-manager plugins -----------------------------------------
-if command -v vim >/dev/null && [[ -d "$DOTFILES/vim/plugged" ]]; then
-  say "vim plugins"
-  run vim -N -u "$DOTFILES/vim/vimrc" -i NONE -es -c 'PlugUpdate --sync' -c 'qa!' </dev/null >/dev/null 2>&1 \
-    || { warn "PlugUpdate failed; open vim and run :PlugUpdate"; FAILED+=("vim plugins"); }
-fi
-if command -v ya >/dev/null; then
-  say "yazi packages"
-  run ya pkg upgrade >/dev/null || { warn "ya pkg upgrade failed"; FAILED+=("yazi"); }
+  warn "no brew on PATH; nothing installed"
 fi
 
 # --- summary ----------------------------------------------------------------

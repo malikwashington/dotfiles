@@ -31,13 +31,13 @@ reported and skipped rather than stopping the install.
 
 ```sh
 ./update.sh --dry-run   # preview
-./update.sh             # pull, upgrade, re-run install.sh, upgrade rust/uv/gh extensions/vim/yazi
+./update.sh             # pull this repo, install Brewfile entries missing here
 ```
 
-After pulling and `brew upgrade` it re-runs `install.sh`, which installs only
-what's new or missing: Brewfile packages, links (a new yazi or git config file,
-say), gh extensions, cli-tools, vim and yazi plugins, mp3book, and
-BetterCmdTab's settings (it's only restarted if one changed).
+It syncs this machine with the setup used elsewhere: configs are symlinks into
+the repo, so the pull makes them live, and anything the Brewfile lists that
+isn't installed gets installed. It upgrades nothing and doesn't run
+`install.sh`; run that yourself on a fresh Mac or when a commit adds a new link.
 
 Safe on a work Mac: it never uses sudo, never touches `~/.gitconfig`, `~/.ssh`,
 the keychain, 1Password or gh's login, and never prompts for a password (a repo
